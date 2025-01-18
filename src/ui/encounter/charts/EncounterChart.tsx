@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import theme from "../../../theme.tsx";
-import {observer} from "mobx-react";
 import {round} from "lodash";
+import {Link} from "react-router-dom";
 
 /**
  * Props accepted by an encounter chart.
@@ -73,10 +73,12 @@ const EncounterChart = (props: Props) => <Container>
     <Header>{props.title}</Header>
     <Content>
         {props.items.map(it =>
-            <DamageItemContainer $color={it.color || `white`} $background={it.background || theme.color.secondary} $width={it.percent} key={`${it.label}-${it.index}`}>
-                <DamageItemText>{it.name}</DamageItemText>
-                <DamageItemText>{round(it.perSecond)} {round(it.percent, 1)}% {it.value}</DamageItemText>
-            </DamageItemContainer>
+            <Link to={`character/${it.index}`} key={`${it.label}-${it.index}`}>
+                <DamageItemContainer $color={it.color || `white`} $background={it.background || theme.color.secondary} $width={it.percent}>
+                    <DamageItemText>{it.name}</DamageItemText>
+                    <DamageItemText>{round(it.perSecond)} {round(it.percent, 1)}% {it.value}</DamageItemText>
+                </DamageItemContainer>
+            </Link>
         )}
     </Content>
 </Container>
@@ -124,6 +126,14 @@ const DamageItemContainer = styled.div<{$width: number, $background: string, $co
     
     display: flex;
     justify-content: space-between;
+    
+    &:hover {
+        filter: brightness(1.25);
+    }
+    
+    &:active {
+        filter: brightness(.65);
+    }
 `;
 
 /**

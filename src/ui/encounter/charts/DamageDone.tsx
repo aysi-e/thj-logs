@@ -1,7 +1,8 @@
 import Entity from "../../../parser/entity";
 import { Encounter } from "../../../parser/parser";
-import {round, values} from "lodash";
+import {values} from "lodash";
 import EncounterChart, {ChartItem} from "./EncounterChart.tsx";
+import {keys} from "mobx";
 
 /**
  * Props accepted by encounter detail charts.
@@ -44,9 +45,9 @@ type DamageEntityItem = {
     dps: number;
 
     /**
-     * The entity index in the entity array.
+     * The entity index.
      */
-    index: number,
+    index: number;
 }
 
 /**
@@ -54,9 +55,8 @@ type DamageEntityItem = {
  *
  * @param entity the entity object
  * @param encounter the encounter object
- * @param index the entity index
  */
-const toDamageEntityItem = (entity: Entity, encounter: Encounter, index: number) => {
+const toDamageEntityItem = (entity: Entity, encounter: Encounter) => {
     let damage = 0;
 
     // un-spool the damage shield section
@@ -85,7 +85,7 @@ const toDamageEntityItem = (entity: Entity, encounter: Encounter, index: number)
         name: entity.name || entity.id,
         damage,
         dps: damage / encounter.duration * 1000,
-        index,
+        index: keys(encounter.entities).indexOf(entity.id),
     }
 };
 
@@ -101,7 +101,8 @@ const toChartItem = (item: DamageEntityItem, total: number): ChartItem => ({
     value: item.damage,
     perSecond: item.dps,
     label: "DPS",
-    percent: item.damage / total * 100
+    percent: item.damage / total * 100,
+    background: `rgb(74, 88, 164)`
 })
 
 /**
@@ -117,11 +118,11 @@ const DamageDoneChart = ({encounter, entities}: Props) => {
     let chart: ChartItem[];
     if (entities.length === 1) {
         const entity = entities[0];
-        title = `damage done by ${entity.name}`
+        title = `damage dealt by ${entity.name}`
         chart = [];
     } else {
-        const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val, index) => {
-            const item = toDamageEntityItem(val, encounter, index);
+        const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val) => {
+            const item = toDamageEntityItem(val, encounter);
             acc.items.push(item);
             acc.allies = acc.allies && !val.isEnemy;
             acc.enemies = acc.enemies && !!val.isEnemy;
@@ -135,9 +136,9 @@ const DamageDoneChart = ({encounter, entities}: Props) => {
         });
 
         if (relation.allies) {
-            title = `damage done by allies`;
+            title = `damage dealt by allies`;
         } else if (relation.enemies) {
-            title = `damage done by enemies`;
+            title = `damage dealt by enemies`;
         } else {
             title = `damage done`;
         }

@@ -208,6 +208,7 @@ export default class Parser {
             const line = TIMESTAMP_REGEX.exec(this.lines[this.index]);
             if (line) {
                 const [_, timestamp, rest] = line;
+                if (rest.startsWith(`Scrap crushes a crimson`)) debugger;
                 const handler = this.handlers.find(it => it.regex.test(rest));
                 if (handler) {
                     const time = parseEQTimestamp(timestamp);

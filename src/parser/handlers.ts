@@ -71,9 +71,16 @@ export const MELEE_DAMAGE_TYPE_NORMALIZE_MAP: Record<MeleeDamageType, MeleeDamag
 }
 
 /**
- * Capturing group for regular expressions parsing melee attacks.
+ * List containing each singular melee damage type, for regular expressions.
  */
-const MELEE_DAMAGE_TYPE_GROUP = `(${keys(MELEE_DAMAGE_TYPE_NORMALIZE_MAP).join('|')})`
+const MELEE_DAMAGE_TYPE_SINGULAR = ['maul', 'bite', 'claw', 'gore', 'sting', 'slice', 'smash', 'rend', 'slash', 'punch', 'hit', 'crush', 'pierce', 'kick', 'strike', 'backstab', 'bash', 'frenzy on']
+const MELEE_DAMAGE_TYPE_SINGULAR_GROUP = `(${MELEE_DAMAGE_TYPE_SINGULAR.join('|')})`
+
+/**
+ * List containing each plural melee damage type, for regular expressions.
+ */
+const MELEE_DAMAGE_TYPE_PLURALS = ['mauls', 'bites', 'claws', 'gores', 'stings', 'slices', 'smashes', 'rends', 'slashes', 'punches', 'hits', 'crushes', 'pierces', 'kicks', 'strikes', 'backstabs', 'bashes', 'frenzies on']
+const MELEE_DAMAGE_TYPE_PLURAL_GROUP = `(${MELEE_DAMAGE_TYPE_PLURALS.join('|')})`
 
 /**
  * Handler for player melee hits.
@@ -81,7 +88,7 @@ const MELEE_DAMAGE_TYPE_GROUP = `(${keys(MELEE_DAMAGE_TYPE_NORMALIZE_MAP).join('
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const PLAYER_MELEE_HIT = {
-    regex: new RegExp(`^You ${MELEE_DAMAGE_TYPE_GROUP} (.+) for (\\d+) points? of damage\.$`),
+    regex: new RegExp(`^You ${MELEE_DAMAGE_TYPE_SINGULAR_GROUP} (.+) for (\\d+) points? of damage\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, attackType, target, damage] = line;
         parser.addPlayerMeleeHit(timestamp, attackType as MeleeDamageType, target, parseInt(damage));
@@ -119,7 +126,7 @@ export const MELEE_MISS_TYPE_NORMALIZE_MAP: Record<MeleeMissType, 'block' | 'mis
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const PLAYER_MELEE_MISS = {
-    regex: new RegExp(`^You try to ${MELEE_DAMAGE_TYPE_GROUP} (.+), but (.+)!`),
+    regex: new RegExp(`^You try to ${MELEE_DAMAGE_TYPE_SINGULAR_GROUP} (.+), but (.+)!`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, attackType, target, rest] = line;
         if (rest === 'miss') {
@@ -159,7 +166,7 @@ export const MARK_CRITICAL_MELEE = {
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const OTHER_MELEE_HIT = {
-    regex: new RegExp(`^(.+) ${MELEE_DAMAGE_TYPE_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.$`),
+    regex: new RegExp(`^(.+?) ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, damage] = line;
         parser.addOtherMeleeHit(timestamp, source, attackType as MeleeDamageType, target, parseInt(damage));
@@ -173,7 +180,7 @@ export const OTHER_MELEE_HIT = {
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const OTHER_MELEE_MISS = {
-    regex: new RegExp(`^(.+) tries to ${MELEE_DAMAGE_TYPE_GROUP} (.+), but (.+)!`),
+    regex: new RegExp(`^(.+?) tries to ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (.+), but (.+)!`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, rest] = line;
         if (rest === 'misses') {
@@ -199,7 +206,7 @@ export const OTHER_MELEE_MISS = {
  * Regex groups: timestamp, victim, damage dealt.
  */
 export const OTHER_DAMAGE_SHIELD_HIT = {
-    regex: new RegExp(`^(.+) was hit by non-melee for (\\d+) points? of damage.$`),
+    regex: new RegExp(`^(.+?) was hit by non-melee for (\\d+) points? of damage.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         // to resolve the damage shield hit, we need to look at the next two lines.
         const line1 = parser.skipAhead(1);
@@ -247,7 +254,7 @@ export const YOU_CRITICAL_SPELL = {
  * Regex groups: timestamp, source, damage, spell name.
  */
 export const OTHER_CRITICAL_SPELL = {
-    regex: new RegExp(`^(.+) delivers a critical blast! \\((\\d+)\\) \\((.+)\\)$`),
+    regex: new RegExp(`^(.+?) delivers a critical blast! \\((\\d+)\\) \\((.+)\\)$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         parser.nextLineCritical = true;
     }
@@ -259,7 +266,7 @@ export const OTHER_CRITICAL_SPELL = {
  * Regex groups: timestamp, source, target, damage, spell name.
  */
 export const SPELL_HIT = {
-    regex: new RegExp(`^(.+) hit (.+) for (\\d+) points of non-melee damage. \\((.+)\\)$`),
+    regex: new RegExp(`^(.+?) hit (.+?) for (\\d+) points of non-melee damage. \\((.+)\\)$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, target, damage, spell] = line;
         const isPet = new RegExp(`(.+) \\(Owner: (.+)\\)`).exec(source);

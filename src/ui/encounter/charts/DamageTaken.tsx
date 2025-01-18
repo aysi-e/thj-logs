@@ -2,6 +2,7 @@ import Entity from "../../../parser/entity";
 import { Encounter } from "../../../parser/parser";
 import {round, values} from "lodash";
 import EncounterChart, {ChartItem} from "./EncounterChart.tsx";
+import {keys} from "mobx";
 
 /**
  * Props accepted by encounter detail charts.
@@ -54,9 +55,8 @@ type DamageEntityItem = {
  *
  * @param entity the entity object
  * @param encounter the encounter object
- * @param index the entity index
  */
-const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter, index: number) => {
+const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter) => {
     let damage = 0;
 
     // un-spool the damage shield section
@@ -85,7 +85,7 @@ const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter, index: nu
         name: entity.name || entity.id,
         damage,
         dps: damage / encounter.duration * 1000,
-        index,
+        index: keys(encounter.entities).indexOf(entity.id),
     }
 };
 
@@ -97,11 +97,12 @@ const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter, index: nu
  */
 const toChartItem = (item: DamageEntityItem, total: number): ChartItem => ({
     name: item.name,
-    index: item.index,
     value: item.damage,
+    index: item.index,
     perSecond: item.dps,
     label: "DTPS",
-    percent: item.damage / total * 100
+    percent: item.damage / total * 100,
+    background: `#9c4646`
 })
 
 /**
@@ -120,8 +121,8 @@ const DamageTakenChart = ({encounter, entities}: Props) => {
         title = `damage taken by ${entity.name}`
         chart = [];
     } else {
-        const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val, index) => {
-            const item = toDamageTakenEntityItem(val, encounter, index);
+        const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val) => {
+            const item = toDamageTakenEntityItem(val, encounter);
             acc.items.push(item);
             acc.allies = acc.allies && !val.isEnemy;
             acc.enemies = acc.enemies && !!val.isEnemy;
