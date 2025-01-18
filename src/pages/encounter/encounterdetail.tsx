@@ -1,7 +1,7 @@
 import {observer} from "mobx-react";
 import {useContext} from "react";
 import {LogContext} from "../../state/log.ts";
-import {Navigate, useParams} from "react-router-dom";
+import {Link, Navigate, Route, Routes, useParams} from "react-router-dom";
 import styled from "styled-components";
 import theme from "../../theme.tsx";
 import {partition, values} from "lodash";
@@ -10,6 +10,7 @@ import {Encounter} from "../../parser/parser.ts";
 import Entity from "../../parser/entity.ts";
 import DamageDoneChart from "../../ui/encounter/charts/DamageDone.tsx";
 import DamageTakenChart from "../../ui/encounter/charts/DamageTaken.tsx";
+import CharacterDetailPage from "./characterdetail.tsx";
 
 /**
  * Component which renders an encounter detail page.
@@ -31,7 +32,7 @@ const EncounterDetailPage = observer(() => {
 
     return <Container>
         <Header>
-            <HeaderText>
+            <Link to={`/encounter/${id}`}><HeaderText>
                 <HeaderTime>{start.toLocaleString({ month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</HeaderTime>
                 {` `}
                 <span>{encounter.isFailed ? `defeated by` : `killed`}</span>
@@ -40,11 +41,16 @@ const EncounterDetailPage = observer(() => {
                 {` in `}
                 <ColoredHeaderText $failed={encounter.isFailed}>{duration.rescale().toHuman()}</ColoredHeaderText>
             </HeaderText>
+            </Link>
         </Header>
-        <Content>
-            <EncounterDamageGraph encounter={encounter} />
-            <EncounterSummary encounter={encounter} />
-        </Content>
+        <Routes>
+            <Route path={`character/:id/*`} element={<CharacterDetailPage encounter={encounter} />} />
+            <Route index element={<Content>
+                <EncounterDamageGraph encounter={encounter} />
+                <EncounterSummary encounter={encounter} />
+            </Content>} />
+        </Routes>
+
     </Container>;
 });
 
