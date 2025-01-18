@@ -2,7 +2,6 @@ import {observer} from "mobx-react";
 import styled from "styled-components";
 import {useContext, useEffect, useRef} from "react";
 import {LogContext} from "../state/log.ts";
-import EncounterList from "../ui/EncounterList.tsx";
 import theme from "../theme.tsx";
 import {IconSelectButton} from "../ui/SelectButton.tsx";
 import {UI_UPLOAD} from "../ui/Icon.tsx";

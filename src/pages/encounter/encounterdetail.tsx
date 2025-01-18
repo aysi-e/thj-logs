@@ -8,6 +8,8 @@ import {partition, values} from "lodash";
 import {DateTime, Duration} from "luxon";
 import {Encounter} from "../../parser/parser.ts";
 import Entity from "../../parser/entity.ts";
+import DamageDoneChart from "../../ui/encounter/charts/DamageDone.tsx";
+import DamageTakenChart from "../../ui/encounter/charts/DamageTaken.tsx";
 
 /**
  * Component which renders an encounter detail page.
@@ -131,14 +133,12 @@ const EncounterSummary = ({encounter}: {encounter: Encounter}) => {
     const [enemies, friends] = partition(values(encounter.entities), it => it.isEnemy);
     return <>
         <EncounterSummaryContainer>
-            <EncounterDamageDoneChart entities={friends}/>
-            <EncounterDamageTakenChart entities={friends} />
-            <EncounterHealingDoneChart entities={friends} />
+            <DamageDoneChart encounter={encounter} entities={friends}/>
+            <DamageTakenChart encounter={encounter} entities={friends} />
         </EncounterSummaryContainer>
         <EncounterSummaryContainer>
-            <EncounterDamageDoneChart entities={enemies}/>
-            <EncounterDamageTakenChart entities={enemies} />
-            <EncounterHealingDoneChart entities={enemies} />
+            <DamageDoneChart encounter={encounter} entities={enemies}/>
+            <DamageTakenChart encounter={encounter} entities={enemies} />
         </EncounterSummaryContainer>
     </>
 }
