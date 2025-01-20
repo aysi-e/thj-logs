@@ -6,6 +6,11 @@ import {Navigate, useParams} from "react-router-dom";
 import {values} from "lodash";
 import OutgoingDamageBreakdownChart from "../../ui/encounter/charts/OutgoingDamageBreakdown.tsx";
 import IncomingDamageBreakdownChart from "../../ui/encounter/charts/IncomingDamageBreakdown.tsx";
+import {Line, LineChart, ResponsiveContainer, XAxis, YAxis} from "recharts";
+import {Duration} from "luxon";
+import {toDPSData} from "../../parser/timeline.ts";
+import Entity from "../../parser/entity.ts";
+import {shortenNumber} from "../../util/numbers.ts";
 
 type Props = {
     encounter: Encounter;
@@ -26,7 +31,7 @@ const CharacterDetailPage = observer(({encounter}: Props) => {
             </HeaderText>
         </Header>
         <Content>
-            <CharacterDamageTimeline encounter={encounter} />
+            <CharacterDamageTimeline entity={entity} encounter={encounter} />
             <BreakdownContainer>
                 <OutgoingDamageBreakdownChart encounter={encounter} entity={entity}/>
                 <IncomingDamageBreakdownChart encounter={encounter} entity={entity}/>
@@ -80,12 +85,31 @@ const ColoredHeaderText = styled.span<{$failed: boolean}>`
 /**
  * A placeholder component for the character damage timeline.
  *
+ * @param entity the entity
  * @param encounter the encounter
  * @constructor
  */
-const CharacterDamageTimeline = ({encounter}: {encounter: Encounter}) => {
+const CharacterDamageTimeline = ({entity, encounter}: {entity: Entity, encounter: Encounter}) => {
+    const data = toDPSData(encounter.timeline, undefined, undefined, [entity.id]);
     return <EncounterDamageGraphContainer>
-        <span>pretend a damage timeline graph is here</span>
+        <Header>
+            <HeaderText>damage per second dealt by {entity.name}</HeaderText>
+        </Header>
+        <ResponsiveContainer width="100%" height={270}>
+            <LineChart
+                data={data}
+                margin={{
+                    top: 16,
+                    right: 12,
+                    left: -4,
+                    bottom: 0,
+                }}
+            >
+                <XAxis dataKey="time" interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5} tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}/>
+                <YAxis tickFormatter={(i) => shortenNumber(i)}/>
+                <Line type="monotone" dataKey="dps" stroke="#82ca9d" dot={false} />
+            </LineChart>
+        </ResponsiveContainer>
     </EncounterDamageGraphContainer>
 }
 
@@ -93,13 +117,11 @@ const CharacterDamageTimeline = ({encounter}: {encounter: Encounter}) => {
  * A container div for the character detail timeline.
  */
 const EncounterDamageGraphContainer = styled.div`
-    height: 250px;
+    height: 300px;
     width: 100%;
     border: ${theme.color.secondary} 1px solid;
     box-sizing: border-box;
     background-color: ${theme.color.darkerBackground};
-    text-align: center;
-    line-height: 250px;
 `;
 
 /**

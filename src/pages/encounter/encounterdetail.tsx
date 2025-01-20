@@ -10,6 +10,9 @@ import {Encounter} from "../../parser/parser.ts";
 import DamageDoneChart from "../../ui/encounter/charts/DamageDone.tsx";
 import DamageTakenChart from "../../ui/encounter/charts/DamageTaken.tsx";
 import CharacterDetailPage from "./characterdetail.tsx";
+import {toDPSData} from "../../parser/timeline.ts";
+import {Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import {shortenNumber} from "../../util/numbers.ts";
 
 /**
  * Component which renders an encounter detail page.
@@ -113,8 +116,27 @@ const Content = styled.div`
  * @constructor
  */
 const EncounterDamageGraph = ({encounter}: {encounter: Encounter}) => {
+    const [enemies, friends] = partition(values(encounter.entities), it => it.isEnemy);
+    const data = toDPSData(encounter.timeline, undefined, undefined, friends.map(it => it.id));
     return <EncounterDamageGraphContainer>
-        <span>pretend a damage timeline graph is here</span>
+        <Header>
+            <HeaderText>damage per second dealt by allies</HeaderText>
+        </Header>
+        <ResponsiveContainer width="100%" height={270}>
+            <LineChart
+                data={data}
+                margin={{
+                    top: 16,
+                    right: 12,
+                    left: -8,
+                    bottom: 0,
+                }}
+            >
+                <XAxis dataKey="time" interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5} tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}/>
+                <YAxis tickFormatter={(i) => shortenNumber(i)}/>
+                <Line type="monotone" dataKey="dps" stroke="#82ca9d" dot={false} />
+            </LineChart>
+        </ResponsiveContainer>
     </EncounterDamageGraphContainer>
 }
 
@@ -122,13 +144,11 @@ const EncounterDamageGraph = ({encounter}: {encounter: Encounter}) => {
  * A container div for the encounter damage timeline.
  */
 const EncounterDamageGraphContainer = styled.div`
-    height: 250px;
+    height: 300px;
     width: 100%;
     border: ${theme.color.secondary} 1px solid;
     box-sizing: border-box;
     background-color: ${theme.color.darkerBackground};
-    text-align: center;
-    line-height: 250px;
 `;
 
 /**

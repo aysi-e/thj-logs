@@ -99,7 +99,7 @@ const toDamageBreakdownItems = (entity: Entity, encounter: Encounter): DetailIte
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
 const OutgoingDamageBreakdownChart = ({encounter, entity}: Props) => {
-    const title = `damage done by ${entity.name}`;
+    const title = `damage dealt by ${entity.name}`;
     const items = toDamageBreakdownItems(entity, encounter);
     return <DetailChart title={title} items={items}/>
 }

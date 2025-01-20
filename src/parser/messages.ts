@@ -1,4 +1,5 @@
 import {Encounter} from "./parser.ts";
+import Timeline from "./timeline.ts";
 
 /**
  * Type representing a progress report from the parser.
