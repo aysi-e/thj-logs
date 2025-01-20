@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "deploy": "rm -rf node_modules/.cache && rimraf out && vite build && touch dist/.nojekyll && gh-pages -d dist -t true"
+    "preview": "vite preview"
   },
   "dependencies": {
     "lodash": "^4.17.21",
@@ -19,7 +18,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
     "recharts": "^2.15.0",
-    "styled-components": "^6.1.13",
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",
