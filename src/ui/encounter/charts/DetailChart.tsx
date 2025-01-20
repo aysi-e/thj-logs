@@ -1,11 +1,11 @@
 import styled from "styled-components";
 import theme from "../../../theme.tsx";
 import {round} from "lodash";
-import {Link} from "react-router-dom";
 import {shortenNumber} from "../../../util/numbers.ts";
+import {DamageShieldDamage, MeleeDamage, SpellDamage} from "../../../parser/entity.ts";
 
 /**
- * Props accepted by an encounter chart.
+ * Props accepted by a detail chart.
  */
 type Props = {
     /**
@@ -16,31 +16,31 @@ type Props = {
     /**
      * The items to display.
      */
-    items: ChartItem[];
+    items: DetailItem[];
 }
 
 /**
- * Item information for an encounter chart.
+ * Type of detail item which contains spell data.
  */
-export type ChartItem = {
+export type SpellDetailItem = {
 
     /**
-     * The item name.
+     * A spell damage detail item.
+     */
+    type: `spell`;
+
+    /**
+     * A name to use for this item.
      */
     name: string;
 
     /**
-     * The entity index.
+     * The spell damage object.
      */
-    link?: string | undefined;
+    damage: SpellDamage;
 
     /**
-     * The damage or healing value for this item.
-     */
-    value: number;
-
-    /**
-     * The damage or healing value per second for this item.
+     * The amount of per-second damage or healing dealt by this item.
      */
     perSecond: number;
 
@@ -66,28 +66,118 @@ export type ChartItem = {
 }
 
 /**
- * Component which displays a basic damage meter-style chart for the Encounter page.
+ * Type of detail item which contains melee data.
+ */
+export type MeleeDetailItem = {
+
+    /**
+     * A melee damage detail item.
+     */
+    type: `melee`;
+
+    /**
+     * A name to use for this item.
+     */
+    name: string;
+
+    /**
+     * The melee damage object.
+     */
+    damage: MeleeDamage;
+
+    /**
+     * The amount of per-second damage or healing dealt by this item.
+     */
+    perSecond: number;
+
+    /**
+     * The label to apply to the per-second value (ex: DPS, HPS).
+     */
+    label: string;
+
+    /**
+     * The percentage value for this item.
+     */
+    percent: number;
+
+    /**
+     * The background color to use for this item.
+     */
+    background?: string;
+
+    /**
+     * The text color to use for this item.
+     */
+    color?: string;
+}
+
+/**
+ * Type of detail item which contains damage shield data.
+ */
+export type DamageShieldDetailItem = {
+
+    /**
+     * A damage shield damage detail item.
+     */
+    type: `ds`;
+
+    /**
+     * A name to use for this item.
+     */
+    name: string;
+
+    /**
+     * The damage shield damage object.
+     */
+    damage: DamageShieldDamage;
+
+    /**
+     * The amount of per-second damage or healing dealt by this item.
+     */
+    perSecond: number;
+
+    /**
+     * The label to apply to the per-second value (ex: DPS, HPS).
+     */
+    label: string;
+
+    /**
+     * The percentage value for this item.
+     */
+    percent: number;
+
+    /**
+     * The background color to use for this item.
+     */
+    background?: string;
+
+    /**
+     * The text color to use for this item.
+     */
+    color?: string;
+}
+
+/**
+ * Item information for a detail chart.
+ */
+export type DetailItem = MeleeDetailItem | DamageShieldDetailItem | SpellDetailItem;
+
+/**
+ * Component which displays a detailed damage breakdown chart for the Character page.
  * @param props
  * @constructor
  */
-const EncounterChart = (props: Props) => {
+const DetailChart = (props: Props) => {
     let totalPerSecond = 0;
     let totalAmount = 0;
-    const items = props.items.map((it: ChartItem) => {
+    const items = props.items.map((it: DetailItem) => {
         totalPerSecond += it.perSecond;
-        totalAmount += it.value;
-        const item = <DamageItemContainer key={`${it.label}-${it.name}`} $color={it.color || `white`} $background={it.background || theme.color.secondary} $width={it.percent}>
+        totalAmount += it.damage.total;
+        return <DamageItemContainer key={`${it.label}-${it.name}`} $color={it.color || `white`} $background={it.background || theme.color.secondary} $width={it.percent}>
             <DamageItemText>{it.name}</DamageItemText>
-            <DamageItemNumber>{shortenNumber(it.value)}</DamageItemNumber>
+            <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
             <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
         </DamageItemContainer>
-        if (it.link) {
-            return <Link to={it.link} key={`${it.label}-${it.name}`}>
-                {item}
-            </Link>
-        } else {
-            return item;
-        }
     });
     return <Container>
         <Header>{props.title}</Header>
@@ -102,10 +192,10 @@ const EncounterChart = (props: Props) => {
     </Container>
 }
 
-export default EncounterChart;
+export default DetailChart;
 
 /**
- * Styled container div for an encounter chart.
+ * Styled container div for a detail chart.
  */
 const Container = styled.div`
     border: ${theme.color.secondary} 1px solid;
@@ -114,7 +204,7 @@ const Container = styled.div`
 `;
 
 /**
- * Styled header div for an encounter chart.
+ * Styled header div for a detail chart.
  */
 const Header = styled.div`
     padding: 8px;
@@ -122,7 +212,7 @@ const Header = styled.div`
 `;
 
 /**
- * Styled content div for an encounter chart.
+ * Styled content div for a detail chart.
  */
 const Content = styled.div`
     border-top: ${theme.color.secondary} 1px solid;

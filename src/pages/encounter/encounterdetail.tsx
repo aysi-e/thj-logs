@@ -7,7 +7,6 @@ import theme from "../../theme.tsx";
 import {partition, values} from "lodash";
 import {DateTime, Duration} from "luxon";
 import {Encounter} from "../../parser/parser.ts";
-import Entity from "../../parser/entity.ts";
 import DamageDoneChart from "../../ui/encounter/charts/DamageDone.tsx";
 import DamageTakenChart from "../../ui/encounter/charts/DamageTaken.tsx";
 import CharacterDetailPage from "./characterdetail.tsx";
@@ -157,63 +156,4 @@ const EncounterSummaryContainer = styled.div`
     display: flex;
     justify-content: space-around;
     gap: 8px;
-`;
-
-/**
- * An encounter chart which displays data based on damage done during an encounter.
- */
-const EncounterDamageDoneChart = ({entities}: {entities: Entity[]}) => {
-    return <EncounterChartContainer>
-        <EncounterChartHeader>damage done by allies</EncounterChartHeader>
-        <EncounterChartContent>
-
-        </EncounterChartContent>
-    </EncounterChartContainer>
-}
-
-/**
- * An encounter chart which displays data based on damage taken during an encounter.
- */
-const EncounterDamageTakenChart = ({entities}: {entities: Entity[]}) => {
-    return <EncounterChartContainer>
-        <EncounterChartHeader>damage taken by allies</EncounterChartHeader>
-        <EncounterChartContent>
-
-        </EncounterChartContent>
-    </EncounterChartContainer>
-}
-
-/**
- * An encounter chart which displays data based on healing done during an encounter.
- */
-const EncounterHealingDoneChart = ({entities}: {entities: Entity[]}) => {
-    return <EncounterChartContainer>
-        <EncounterChartHeader>healing done by allies</EncounterChartHeader>
-        <EncounterChartContent>
-
-        </EncounterChartContent>
-    </EncounterChartContainer>
-}
-
-/**
- * Styled container div for an encounter chart.
- */
-const EncounterChartContainer = styled.div`
-    border: ${theme.color.secondary} 1px solid;
-    width: 100%;
-`;
-
-/**
- * Styled header div for an encounter chart.
- */
-const EncounterChartHeader = styled.div`
-    padding: 8px;
-    background-color: ${theme.color.darkerGrey};
-`;
-
-/**
- * Styled content div for an encounter chart.
- */
-const EncounterChartContent = styled.div`
-
 `;

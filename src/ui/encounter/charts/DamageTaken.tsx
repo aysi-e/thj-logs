@@ -1,8 +1,9 @@
 import Entity from "../../../parser/entity";
 import { Encounter } from "../../../parser/parser";
-import {round, values} from "lodash";
+import { values } from "lodash";
 import EncounterChart, {ChartItem} from "./EncounterChart.tsx";
 import {keys} from "mobx";
+import IncomingDamageBreakdownChart from "./IncomingDamageBreakdown.tsx";
 
 /**
  * Props accepted by encounter detail charts.
@@ -98,7 +99,7 @@ const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter) => {
 const toChartItem = (item: DamageEntityItem, total: number): ChartItem => ({
     name: item.name,
     value: item.damage,
-    index: item.index,
+    link: `character/${item.index}`,
     perSecond: item.dps,
     label: "DTPS",
     percent: item.damage / total * 100,
@@ -118,8 +119,7 @@ const DamageTakenChart = ({encounter, entities}: Props) => {
     let chart: ChartItem[];
     if (entities.length === 1) {
         const entity = entities[0];
-        title = `damage taken by ${entity.name}`
-        chart = [];
+        return <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
     } else {
         const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val) => {
             const item = toDamageTakenEntityItem(val, encounter);

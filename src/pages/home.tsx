@@ -85,7 +85,9 @@ const HomePage = observer(() => {
             {upload}
         </Content>
         <Footer>
-            <FooterText>click for credits and attributions</FooterText>
+            {
+                //<FooterText>click for credits and attributions</FooterText>
+            }
             <div>not affiliated with or endorsed by EverQuest, Daybreak Games, or the Heroes Journey team</div>
         </Footer>
     </Container>
