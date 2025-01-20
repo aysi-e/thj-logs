@@ -41,6 +41,8 @@ const GlobalStyle = createGlobalStyle<Style>`
     color: inherit;
   }
 `;
+// @ts-ignore - added by vite
+const baseUrl = import.meta.env.BASE_URL;
 
 /**
  * React entrypoint.
@@ -48,7 +50,7 @@ const GlobalStyle = createGlobalStyle<Style>`
 ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
     <React.StrictMode>
         <GlobalStyle background={theme.color.background} />
-        <BrowserRouter>
+        <BrowserRouter basename={baseUrl}>
             <App />
         </BrowserRouter>
     </React.StrictMode>,
