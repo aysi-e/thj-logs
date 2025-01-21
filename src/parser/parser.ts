@@ -1,7 +1,7 @@
 import {has, isEmpty, last, values} from "lodash";
 import {
     Handler,
-    MARK_CRITICAL_MELEE, MELEE_DAMAGE_TYPE_NORMALIZE_MAP, MELEE_MISS_TYPE_NORMALIZE_MAP,
+    CRITICAL_MELEE, MELEE_DAMAGE_TYPE_NORMALIZE_MAP, MELEE_MISS_TYPE_NORMALIZE_MAP,
     MeleeDamageType, MeleeMissType, OTHER_CRITICAL_SPELL, OTHER_DAMAGE_SHIELD_HIT, OTHER_DEATH,
     OTHER_MELEE_HIT, OTHER_MELEE_MISS, PLAYER_DEATH, PLAYER_KILL,
     PLAYER_MELEE_HIT,
@@ -9,7 +9,7 @@ import {
 } from "./handlers.ts";
 import {DateTime} from "luxon";
 import { customAlphabet } from 'nanoid/non-secure';
-import Entity from "./entity.ts";
+import Entity, {Player} from "./entity.ts";
 import {BOSSES_BY_NAME} from "./data.ts";
 import Timeline from "./timeline.ts";
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 16);
@@ -27,7 +27,43 @@ export const UNKNOWN_ID = `#unknown`;
 /**
  * Regular expression which extracts the timestamp from an EverQuest log message.
  */
-const TIMESTAMP_REGEX = new RegExp(`^\\[(.*)\] (.*)$`);
+const TIMESTAMP_REGEX = new RegExp(`^\\[(.*?)\] (.*)$`);
+
+/**
+ * List of regular expressions that indicate that the message should not be parsed.
+ */
+const CHAT_SPAM_AVOIDLIST = [
+    // ignore chat messages from others
+    new RegExp(`^.+ (?:tells you,|says,?(?: out of character,)?|shouts|auctions,|tells the group,|tells the guild,|tells the raid,) '.+'`),
+    // ignore chat messages from self
+    new RegExp(`^You (?:say(?: out of character)?|shout|tell your party|tell your raid|tell .+|auction), '.+'$`),
+    // ignore exp gain messages
+    new RegExp(`^You gain experience!!$`),
+    new RegExp(`^You gain bonus AA experience!`),
+    new RegExp(`^Your .+ absorbs energy,`),
+    new RegExp(`^You have gained an ability point!`),
+    // ignore loot messages
+    new RegExp(`^Luck is with you!`),
+    new RegExp(`^Targeted \\(Corpse\\):`),
+    new RegExp(`^Stand close to and right click on the Corpse to try looting it\.$`),
+    new RegExp(`^--You have looted a`),
+    new RegExp(`^You receive .+ from the corpse\.$`),
+
+    // ignore faction messages
+    new RegExp(`^Your faction standing with`),
+
+    // ignore server spam
+    new RegExp(`has reached Level`),
+    new RegExp(`has logged in for the first time\.$`),
+
+    // ignore error messages
+    new RegExp(`^You cannot see your target\.$`),
+    new RegExp(`^You can use this ability again in`),
+    new RegExp(`^You must first click on the being you wish to attack!$`),
+
+    // ignore spell worn off messages (they aren't consistent enough to care about)
+    new RegExp(`^Your .+ spell has worn off of .+\.$`),
+]
 
 /**
  * A Parser object which ingests a logfile from The Heroes Journey custom EverQuest server.
@@ -54,7 +90,7 @@ export default class Parser {
      */
     handlers: Handler[] = [
         ZONE_CHANGE,
-        MARK_CRITICAL_MELEE,
+        CRITICAL_MELEE,
         PLAYER_MELEE_HIT,
         PLAYER_MELEE_MISS,
         OTHER_DAMAGE_SHIELD_HIT,
@@ -189,17 +225,23 @@ export default class Parser {
             const line = TIMESTAMP_REGEX.exec(this.lines[this.index]);
             if (line) {
                 const [_, timestamp, rest] = line;
-                const handler = this.handlers.find(it => it.regex.test(rest));
-                if (handler) {
-                    const time = parseEQTimestamp(timestamp);
-                    const params = handler.regex.exec(rest)!;
-                    const result = this.manageEncounterTime(time.toMillis());
 
-                    // if we get a result from 'manageEncounterTime', we've ended our encounter. return it.
-                    if (result) return result;
+                // should we avoid parsing this line?
+                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(rest));
+                if (!avoid) {
+                    // we can parse this line.
+                    const handler = this.handlers.find(it => it.regex.test(rest));
+                    if (handler) {
+                        const time = parseEQTimestamp(timestamp);
+                        const params = handler.regex.exec(rest)!;
+                        const result = this.manageEncounterTime(time.toMillis());
 
-                    // otherwise, keep parsing
-                    handler.evaluate(time.toMillis(), params, this);
+                        // if we get a result from 'manageEncounterTime', we've ended our encounter. return it.
+                        if (result) return result;
+
+                        // otherwise, keep parsing
+                        handler.evaluate(time.toMillis(), params, this);
+                    }
                 }
             }
 
@@ -296,12 +338,22 @@ export default class Parser {
      *
      * @param i the number of lines to look ahead at.
      */
-    lookAhead(i: number) {
+    lookAhead(i: number): string | undefined {
         const index = this.index + i;
 
         if (this.lines.length > index) {
-            const line = TIMESTAMP_REGEX.exec(this.lines[index]);
-            if (line) return line[2];
+            const result = TIMESTAMP_REGEX.exec(this.lines[index]);
+            if (result) {
+                // we have a next line
+                const line = result[2];
+
+                // should we avoid this next line?
+                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(line));
+                if (avoid) return this.lookAhead(i + 1);
+
+                // we can return the line
+                return line;
+            }
         }
 
         return undefined;
@@ -313,14 +365,54 @@ export default class Parser {
      *
      * @param i the number of lines to skip ahead at.
      */
-    skipAhead(i: number) {
-        this.index += i;
-        if (this.lines.length > this.index) {
-            const line = TIMESTAMP_REGEX.exec(this.lines[this.index]);
-            if (line) return line[2];
+    skipAhead(i: number): string | undefined {
+        if (this.lines.length > this.index + i) {
+            const result = TIMESTAMP_REGEX.exec(this.lines[this.index + i]);
+            if (result) {
+                // we have a next line
+                const line = result[2];
+
+                // should we avoid this next line?
+                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(line));
+                if (avoid) return this.skipAhead(i + 1);
+
+                // we can advance and return the line.
+                this.index += i;
+                return line;
+            }
         }
 
         return undefined;
+    }
+
+    /**
+     * Look back through the log, returning a list of combat log events that happened before the current event until the
+     * provided timestamp (inclusive). The lines will be returned in reverse-chronological order.
+     *
+     * If our current line doesn't have a timestamp for some reason, don't return anything.
+     *
+     * @param timestamp the timestamp to look back to
+     */
+    lookBack(timestamp: number): string[] {
+        const result: string[] = [];
+        if (this.index === 0) return result;
+
+        const end = DateTime.fromMillis(timestamp);
+        let i = this.index - 1;
+        let line = TIMESTAMP_REGEX.exec(this.lines[i]);
+        while (i > 0 && line && end <= parseEQTimestamp(line[1])) {
+            line = TIMESTAMP_REGEX.exec(this.lines[i]);
+            if (line) {
+                const time = parseEQTimestamp(line[1]);
+                const rest = line[2];
+                if (end <= time && !CHAT_SPAM_AVOIDLIST.find(it => it.test(rest))) {
+                    result.push(rest);
+                }
+            }
+            i--;
+        }
+
+        return result;
     }
 
     /**
@@ -526,6 +618,18 @@ export default class Parser {
 
         // todo: need logic for multiple enemies with same name
     }
+
+    /**
+     * Add a warning message to the current encounter.
+     *
+     * @param timestamp the timestamp
+     * @param key the key
+     * @param message the message
+     */
+    addWarning(timestamp: number, key: string, message: string) {
+        const encounter = last(this.encounters)!;
+        encounter.addWarning(timestamp, key, message);
+    }
 }
 
 /**
@@ -579,6 +683,11 @@ export class Encounter {
     entities: Record<string, Entity> = {};
 
     /**
+     * Warnings generated when parsing this log.
+     */
+    warnings: Record<string, {message: string, count: number}> = {};
+
+    /**
      * Construct an Encounter.
      *
      * @param player a reference to the logging player
@@ -621,6 +730,21 @@ export class Encounter {
     }
 
     /**
+     * Add a warning to this Encounter.
+     *
+     * @param timestamp the timestamp
+     * @param key the warning error key
+     * @param message the message
+     */
+    addWarning(timestamp: number, key: string, message: string) {
+        if (!this.warnings[key]) {
+            this.warnings[key] = { message, count: 1};
+        } else {
+            this.warnings[key].count++;
+        }
+    }
+
+    /**
      * Reset the state contained in this encounter object.
      */
     reset() {
@@ -633,21 +757,7 @@ export class Encounter {
         this.end = 0;
         this.isOver = false;
         this.isBoss = false;
-    }
-}
-
-/**
- * An entity class representing the logging player.
- */
-export class Player extends Entity {
-
-    /**
-     * Construct a player entity.
-     */
-    constructor() {
-        super(PLAYER_ID);
-        this.isEnemy = false;
-        this.isBoss = false;
+        this.warnings = {};
     }
 }
 

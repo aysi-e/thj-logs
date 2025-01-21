@@ -1,18 +1,20 @@
 import {observer} from "mobx-react";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import {LogContext} from "../../state/log.ts";
 import {Link, Navigate, Route, Routes, useParams} from "react-router-dom";
 import styled from "styled-components";
 import theme from "../../theme.tsx";
-import {partition, values} from "lodash";
+import {map, partition, size, values} from "lodash";
 import {DateTime, Duration} from "luxon";
 import {Encounter} from "../../parser/parser.ts";
 import DamageDoneChart from "../../ui/encounter/charts/DamageDone.tsx";
 import DamageTakenChart from "../../ui/encounter/charts/DamageTaken.tsx";
 import CharacterDetailPage from "./characterdetail.tsx";
 import {toDPSData} from "../../parser/timeline.ts";
-import {Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis} from "recharts";
 import {shortenNumber} from "../../util/numbers.ts";
+import {UI_WARNING, UIIcon} from "../../ui/Icon.tsx";
+import Tooltip, {BasicTooltip} from "../../ui/Tooltip.tsx";
 
 /**
  * Component which renders an encounter detail page.
@@ -34,7 +36,8 @@ const EncounterDetailPage = observer(() => {
 
     return <Container>
         <Header>
-            <Link to={`/encounter/${id}`}><HeaderText>
+            <Link to={`/encounter/${id}`}>
+                <HeaderText>
                 <HeaderTime>{start.toLocaleString({ month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</HeaderTime>
                 {` `}
                 <span>{encounter.isFailed ? `defeated by` : `killed`}</span>
@@ -44,7 +47,9 @@ const EncounterDetailPage = observer(() => {
                 <ColoredHeaderText $failed={encounter.isFailed}>{duration.rescale().toHuman()}</ColoredHeaderText>
             </HeaderText>
             </Link>
+            <EncounterWarnings encounter={encounter}/>
         </Header>
+
         <Routes>
             <Route path={`character/:id/*`} element={<CharacterDetailPage encounter={encounter} />} />
             <Route index element={<Content>
@@ -88,6 +93,17 @@ const HeaderText = styled.div`
  */
 const HeaderTime = styled.span`
     font-size: .9em;
+`;
+
+/**
+ * Styled div for the warning element in the header.
+ */
+const HeaderWarning = styled.div`
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    cursor: pointer;
+    margin-right: 10px;
 `;
 
 /**
@@ -176,4 +192,74 @@ const EncounterSummaryContainer = styled.div`
     display: flex;
     justify-content: space-around;
     gap: 8px;
+`;
+
+/**
+ * Render a header containing warning data for an encounter.
+ *
+ * @param encounter the encounter
+ * @constructor
+ */
+const EncounterWarnings = ({encounter}: {encounter: Encounter}) => {
+    // <WarningHeader>
+    //             <HeaderText>encountered the following problems when parsing this encounter:</HeaderText>
+    //             {map(encounter.warnings, (value, key) => <EncounterWarningItem key={key} message={value.message} count={value.count}/>)}
+    //         </WarningHeader>
+    if (size(encounter.warnings)) {
+        return <HeaderWarning>
+            <StyledTooltip
+                renderTrigger={() => <UIIcon height={26} width={26} path={UI_WARNING} foregroundColor={theme.color.secondary} />}
+                renderTooltip={() => <WarningTooltip>
+                    <WarningHeader>
+                        encountered the following warnings when parsing this encounter
+                    </WarningHeader>
+                    <WarningContent>
+                        {map(encounter.warnings, (value, key) =>
+                            <div key={key}>{value.message} ({value.count} times)</div>)}
+                    </WarningContent>
+                </WarningTooltip>}
+                placement={`bottom`}
+                arrow
+            />
+        </HeaderWarning>
+    } else {
+        return <></>;
+    }
+}
+
+/**
+ * A styled tooltip for the encounter warnings.
+ */
+const StyledTooltip = styled(Tooltip)`
+    display: flex;
+`
+
+/**
+ * A styled tooltip container for the encounter warnings.
+ */
+const WarningTooltip = styled(BasicTooltip)`
+    max-width: 500px;
+`;
+
+/**
+ * A header component for the the encounter warnings.
+ */
+const WarningHeader = styled.div`
+    padding: 4px;
+    width: calc(100% - 8px);
+    color: ${theme.color.white};
+    font-family: ${theme.font.header};
+    border-bottom: 1px solid ${theme.color.secondary};
+    text-align: center;
+`;
+
+/**
+ * Styled content div for the encounter warnings.
+ */
+const WarningContent = styled.div`
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
 `;

@@ -2,6 +2,19 @@
 
 import Parser from "./parser.ts";
 
+const FILENAME_PARSER = new RegExp(`eqlog_(\\w+)_thj.txt`);
+
+/**
+ * Attempt to read a character name from the log file name.
+ *
+ * @param fileName the log file name
+ */
+const getNameFromFileName = (fileName: string) => {
+    const result = FILENAME_PARSER.exec(fileName);
+    if (result) return result[1];
+    return undefined;
+}
+
 {
     /**
      * Entrypoint to the webworker function.
@@ -16,6 +29,7 @@ import Parser from "./parser.ts";
 
         e.data.text().then((log) => {
             const parser = new Parser(log);
+            parser.player.name = getNameFromFileName(e.data.name);
 
             postMessage({
                 type: `progress`,

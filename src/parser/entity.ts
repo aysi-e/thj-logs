@@ -1,5 +1,6 @@
 import {MELEE_MISS_TYPE_NORMALIZE_MAP, MeleeDamageType, MeleeMissType, SpecialMeleeType} from "./handlers.ts";
 import {forEach} from "lodash";
+import {PLAYER_ID} from "./parser.ts";
 
 /**
  * Class representing an individual entity existing in a combat encounter.
@@ -83,6 +84,21 @@ export default class Entity {
         return entity;
     }
 
+}
+
+/**
+ * An entity class representing the logging player.
+ */
+export class Player extends Entity {
+
+    /**
+     * Construct a player entity.
+     */
+    constructor() {
+        super(PLAYER_ID);
+        this.isEnemy = false;
+        this.isBoss = false;
+    }
 }
 
 /**

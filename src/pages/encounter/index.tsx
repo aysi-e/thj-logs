@@ -38,12 +38,13 @@ const EncounterIndex = observer(() => {
         ? DateTime.fromMillis(log.start).toLocaleString({ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : `unknown`;
     const end = log.end
         ? DateTime.fromMillis(log.end).toLocaleString({ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : `unknown`;
+    const [bosses, trash] = partition(log.encounters, it => it.isBoss)
 
     return <Container>
         <Header>
             <Link to={`/encounter`}>
                 <HeaderText>
-                    <div><strong>{log.encounters.length}</strong> encounters</div>
+                    <div><strong>{log.encounters.length}</strong> encounters (<strong>{bosses.length}</strong> boss and <strong>{trash.length}</strong> trash encounters)</div>
                     <div>logged by <strong>{loggedBy}</strong> from <strong>{start}</strong> to <strong>{end}</strong></div>
                 </HeaderText>
             </Link>
@@ -217,13 +218,14 @@ const EncounterZoneList = observer(({encounters}: Props) => {
 
     // todo: eventually dont ignore trash
     const [bosses, trash] = partition(encounters, it => it.isBoss);
-    if (!bosses.length) return <></>
+    // if (!bosses.length) return <></>
 
     return <EncounterZoneListContainer>
         <EncounterZoneListItem>
             {`${zone} (${start.toLocaleString(DateTime.DATETIME_SHORT)} to ${end.toLocaleString(DateTime.DATETIME_SHORT)})`}
         </EncounterZoneListItem>
         {bosses.map(it => <BossEncounterListItem encounter={it} key={it.id} />)}
+        {trash.map(it => <BossEncounterListItem encounter={it} key={it.id} />)}
     </EncounterZoneListContainer>;
 });
 
