@@ -8,7 +8,7 @@ import {Link, Navigate, Route, Routes} from "react-router-dom";
 import {UI_CANCEL, UIIcon} from "../../ui/Icon.tsx";
 import {runInAction} from "mobx";
 import {Encounter} from "../../parser/parser.ts";
-import {last, partition, values} from "lodash";
+import {forEach, isArray, last, partition, values} from "lodash";
 import EncounterDetailPage from "./encounterdetail.tsx";
 
 /**
@@ -38,12 +38,13 @@ const EncounterIndex = observer(() => {
         ? DateTime.fromMillis(log.start).toLocaleString({ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : `unknown`;
     const end = log.end
         ? DateTime.fromMillis(log.end).toLocaleString({ month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : `unknown`;
+    const [bosses, trash] = partition(log.encounters, it => it.isBoss)
 
     return <Container>
         <Header>
             <Link to={`/encounter`}>
                 <HeaderText>
-                    <div><strong>{log.encounters.length}</strong> encounters</div>
+                    <div><strong>{log.encounters.length}</strong> encounters (<strong>{bosses.length}</strong> boss and <strong>{trash.length}</strong> trash encounters)</div>
                     <div>logged by <strong>{loggedBy}</strong> from <strong>{start}</strong> to <strong>{end}</strong></div>
                 </HeaderText>
             </Link>
@@ -185,7 +186,7 @@ const groupByZone = (encounters: Encounter[]) => {
         }
 
         current.push(it);
-    })
+    });
 
     if (current.length) result.push(current);
 
@@ -210,20 +211,42 @@ const EncounterListContainer = styled.div`
  * An encounter sublist divided by zone name.
  */
 const EncounterZoneList = observer(({encounters}: Props) => {
+    const groupTrash = (encounters: Encounter[]) => {
+        const result: (Encounter | Encounter[])[] = [];
+        let trash: Encounter[] = [];
+        encounters.forEach(it => {
+            if (it.isBoss) {
+                if (trash.length) {
+                    result.push(trash);
+                    trash = [];
+                }
+                result.push(it);
+            } else {
+                trash.push(it);
+            }
+        });
+        if (trash.length) result.push(trash);
+        return result;
+    }
+
     if (!encounters.length) return <></>
     const zone = encounters[0].zone || 'unknown zone'
     const start = DateTime.fromMillis(encounters[0].start);
     const end = DateTime.fromMillis(last(encounters)!.end);
 
     // todo: eventually dont ignore trash
+    const combats = groupTrash(encounters);
     const [bosses, trash] = partition(encounters, it => it.isBoss);
-    if (!bosses.length) return <></>
+    // if (!bosses.length) return <></>
 
     return <EncounterZoneListContainer>
         <EncounterZoneListItem>
             {`${zone} (${start.toLocaleString(DateTime.DATETIME_SHORT)} to ${end.toLocaleString(DateTime.DATETIME_SHORT)})`}
         </EncounterZoneListItem>
-        {bosses.map(it => <BossEncounterListItem encounter={it} key={it.id} />)}
+        {combats.map((it, index) => {
+            if (isArray(it)) return <TrashEncounterGroup key={`trash-encounters-${index}`} encounters={it} />
+            return <BossEncounterListItem encounter={it} key={it.id} />
+        })}
     </EncounterZoneListContainer>;
 });
 
@@ -286,4 +309,62 @@ const ListItemText = styled.span<{$failed: boolean}>`
  */
 const ListItemTime = styled.span`
     font-size: .9em;
+`
+
+
+/**
+ * An encounter list item component which displays a number of trash encounters.
+ */
+const TrashEncounterGroup = ({encounters} : {encounters: Encounter[]}) => (<TrashEncounterGroupContainer>
+        {encounters.map(encounter => {
+            const duration = Duration.fromMillis(encounter.duration);
+            const enemies = values(encounter.entities).filter(it => it.isEnemy).map(it => it.name)
+            let enemyNames;
+            if (enemies.length <= 3) {
+                enemyNames = enemies.join(', ')
+            } else {
+                enemyNames = enemies.slice(0, 3).join(', ') + `... (${enemies.length - 3} more)`
+            }
+
+            return <Link to={encounter.id}>
+                <TrashEncounterListItem>
+                 <ListItemTime>
+                     {DateTime.fromMillis(encounter.start).toLocaleString(DateTime.TIME_SIMPLE)}
+                 </ListItemTime> <TrashItemText $failed={encounter.isFailed}>{enemyNames} ({duration.rescale().toHuman()})</TrashItemText>
+                </TrashEncounterListItem></Link>
+        })}
+    </TrashEncounterGroupContainer>
+);
+
+/**
+ * Container div for the trash encounter group.
+ */
+const TrashEncounterGroupContainer = styled.div`
+    font-size: .9em;
+    background: ${theme.color.darkerGrey};
+`;
+
+/**
+ * List item div for the trash encounter group.
+ */
+const TrashEncounterListItem = styled.div`
+    padding: 8px;
+    cursor: pointer;
+    user-select: none;
+    background: ${theme.color.darkerGrey};
+    
+    &:hover {
+        filter: brightness(1.35);
+    }
+
+    &:active {
+        filter: brightness(.65);
+    }
+`;
+
+/**
+ * Text div for the trash encounter group.
+ */
+const TrashItemText = styled.span<{$failed: boolean}>`
+    color: ${props => props.$failed ? theme.color.error : `#d3d7df`};
 `

@@ -41,6 +41,7 @@ const GlobalStyle = createGlobalStyle<Style>`
     color: inherit;
   }
 `;
+
 // @ts-ignore - added by vite
 const baseUrl = import.meta.env.BASE_URL;
 

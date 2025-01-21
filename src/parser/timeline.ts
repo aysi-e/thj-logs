@@ -154,7 +154,5 @@ export const toDPSData = (
         }
     });
 
-    console.log(dps);
-
     return dps;
 }

@@ -60,6 +60,12 @@ export const KNOWN_BOSSES = [
     {name: `Silverwing`, zone: `Veeshan's Peak`, era: `kunark`},
     {name: `Phara Dar`, zone: `Veeshan's Peak`, era: `kunark`},
 
+    // -- loy --
+    {name: `The Luggald Broodmother`, zone: `The Crypt of Nadox`, era: `loy`},
+    {name: `Innoruuk`, zone: `The Crypt of Nadox`, era: `loy`},
+    {name: `Spiritseeker Nadox`, zone: `The Crypt of Nadox`, era: `loy`},
+    {name: `Captain Krasnok`, zone: `Hate's Fury`, era: `loy`},
+
     // -- velious era --
     // dragons
     {name: `Zlandicar`, zone: `Dragon Necropolis`, era: `velious`},
