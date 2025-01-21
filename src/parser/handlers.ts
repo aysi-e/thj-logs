@@ -274,7 +274,7 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const OTHER_MELEE_HIT = {
-    regex: new RegExp(`^(.+?) ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.$`),
+    regex: new RegExp(`^(.+?) ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.(?: \\(Rampage\\))?$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, damage] = line;
         parser.addOtherMeleeHit(timestamp, source, attackType as MeleeDamageType, target, parseInt(damage));
