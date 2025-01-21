@@ -155,7 +155,7 @@ export const CRITICAL_MELEE = {
         // attempt to evaluate this critical melee as an npc melee event.
         if (evaluateOtherMeleeCritical(timestamp, line, parser)) return;
 
-        parser.addWarning(timestamp, `out-of-range-${line[1]}`, `out of range to record melee events for ${line[1]}`)
+        parser.addWarning(timestamp, `missed-critical-${line[1]}`, `missed melee event for ${line[1]}`)
     }
 }
 
@@ -181,10 +181,17 @@ const evaluatePlayerMeleeCritical = (timestamp: number, line: RegExpMatchArray, 
         nextLine = parser.lookAhead(1) || "";
     }
 
+    // advance forward until we find a line that we can actually parse.
+    let i = 1;
+    while (parser.index < parser.lines.length && !parser.handlers.find(it => it.regex.test(nextLine))) {
+        i++;
+        nextLine = parser.lookAhead(i) || "";
+    }
+
     const playerHit = PLAYER_MELEE_HIT.regex.exec(nextLine);
     if (!playerHit) return false;
     if (!parser.player.name) parser.associatePlayer(line[1]);
-    parser.skipAhead(1);
+    parser.skipAhead(i);
     parser.nextLineCritical = true;
     PLAYER_MELEE_HIT.evaluate(timestamp, playerHit, parser);
     return true;
@@ -218,6 +225,11 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
         // we encountered a damage shield effect
         parser.skipAhead(1);
         nextLine = parser.lookAhead(1) || "";
+    }
+
+    // advance forward until we find a line that we can actually parse.
+    while (parser.index < parser.lines.length && !parser.handlers.find(it => it.regex.test(nextLine))) {
+        nextLine = parser.skipAhead(1) || "";
     }
 
     // we should be able to find our melee hit...

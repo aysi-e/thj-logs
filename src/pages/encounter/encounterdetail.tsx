@@ -201,10 +201,6 @@ const EncounterSummaryContainer = styled.div`
  * @constructor
  */
 const EncounterWarnings = ({encounter}: {encounter: Encounter}) => {
-    // <WarningHeader>
-    //             <HeaderText>encountered the following problems when parsing this encounter:</HeaderText>
-    //             {map(encounter.warnings, (value, key) => <EncounterWarningItem key={key} message={value.message} count={value.count}/>)}
-    //         </WarningHeader>
     if (size(encounter.warnings)) {
         return <HeaderWarning>
             <StyledTooltip
