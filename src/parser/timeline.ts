@@ -144,6 +144,8 @@ export const toDPSData = (
     const dps = damageItems.map((i, index, items) => {
         const s = Math.max(index - 2, 0);
         const e = Math.min(index + 2, items.length - 1);
+        if (e <= s) return {time: i.x, dps: i.y};
+
         const y = range(s + 1, e).reduce((acc, val) => {
             return round((acc + items[val].y) / 2);
         }, items[s].y);

@@ -287,6 +287,10 @@ export default class Parser {
                     // don't keep encounters where we don't have enemies.
                     encounter.reset();
                     encounter.zone = this.zone;
+                } else if (!values(encounter.entities).find(it => it.isBoss || it.deaths.length)) {
+                    // don't keep non-boss encounters where nobody dies
+                    encounter.reset();
+                    encounter.zone = this.zone;
                 } else {
                     encounter.isOver = true;
                     const next = new Encounter(this.player, this.encounters.length.toString());
