@@ -1,5 +1,5 @@
-import {ComponentProps} from "../theme.tsx";
-import {JSX} from "react";
+import { ComponentProps } from '../theme.tsx';
+import { JSX } from 'react';
 
 /**
  * Props accepted by the Icon component.
@@ -53,8 +53,8 @@ const getTextPath = (props: Props & ComponentProps) =>
     typeof props.path === 'string'
         ? props.path
         : typeof (props.path as IconDescription).path === 'string'
-            ? ((props.path as IconDescription).path as string)
-            : undefined;
+          ? ((props.path as IconDescription).path as string)
+          : undefined;
 
 /**
  * Check if the props object contains a specific viewbox to use for the SVG content. If it does, return it.
@@ -73,8 +73,8 @@ const getElementPath = (props: Props & ComponentProps) =>
     typeof props.path === 'string'
         ? undefined
         : typeof (props.path as IconDescription).path === 'string'
-            ? undefined
-            : ((props.path as IconDescription).path as JSX.Element);
+          ? undefined
+          : ((props.path as IconDescription).path as JSX.Element);
 
 /**
  * An 'upload' icon from Google Icons.

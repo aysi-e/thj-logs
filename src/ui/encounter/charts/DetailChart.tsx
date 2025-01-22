@@ -1,8 +1,8 @@
-import styled from "styled-components";
-import theme from "../../../theme.tsx";
-import {round} from "lodash";
-import {shortenNumber} from "../../../util/numbers.ts";
-import {DamageShieldDamage, MeleeDamage, SpellDamage} from "../../../parser/entity.ts";
+import styled from 'styled-components';
+import theme from '../../../theme.tsx';
+import { round } from 'lodash';
+import { shortenNumber } from '../../../util/numbers.ts';
+import { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity.ts';
 
 /**
  * Props accepted by a detail chart.
@@ -17,13 +17,12 @@ type Props = {
      * The items to display.
      */
     items: DetailItem[];
-}
+};
 
 /**
  * Type of detail item which contains spell data.
  */
 export type SpellDetailItem = {
-
     /**
      * A spell damage detail item.
      */
@@ -63,13 +62,12 @@ export type SpellDetailItem = {
      * The text color to use for this item.
      */
     color?: string;
-}
+};
 
 /**
  * Type of detail item which contains melee data.
  */
 export type MeleeDetailItem = {
-
     /**
      * A melee damage detail item.
      */
@@ -109,13 +107,12 @@ export type MeleeDetailItem = {
      * The text color to use for this item.
      */
     color?: string;
-}
+};
 
 /**
  * Type of detail item which contains damage shield data.
  */
 export type DamageShieldDetailItem = {
-
     /**
      * A damage shield damage detail item.
      */
@@ -155,7 +152,7 @@ export type DamageShieldDetailItem = {
      * The text color to use for this item.
      */
     color?: string;
-}
+};
 
 /**
  * Item information for a detail chart.
@@ -173,24 +170,37 @@ const DetailChart = (props: Props) => {
     const items = props.items.map((it: DetailItem) => {
         totalPerSecond += it.perSecond;
         totalAmount += it.damage.total;
-        return <DamageItemContainer key={`${it.label}-${it.name}`} $color={it.color || `white`} $background={it.background || theme.color.secondary} $width={it.percent}>
-            <DamageItemText>{it.name}</DamageItemText>
-            <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
-            <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
-        </DamageItemContainer>
+        return (
+            <DamageItemContainer
+                key={`${it.label}-${it.name}`}
+                $color={it.color || `white`}
+                $background={it.background || theme.color.secondary}
+                $width={it.percent}
+            >
+                <DamageItemText>{it.name}</DamageItemText>
+                <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
+                <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
+            </DamageItemContainer>
+        );
     });
-    return <Container>
-        <Header>{props.title}</Header>
-        <Content>
-            {items}
-            {items.length > 1 && <ChartFooter>
-                <DamageItemText>total</DamageItemText>
-                <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
-                <DamageItemNumber>{round(totalPerSecond).toLocaleString()}</DamageItemNumber>
-            </ChartFooter>}
-        </Content>
-    </Container>
-}
+    return (
+        <Container>
+            <Header>{props.title}</Header>
+            <Content>
+                {items}
+                {items.length > 1 && (
+                    <ChartFooter>
+                        <DamageItemText>total</DamageItemText>
+                        <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
+                        <DamageItemNumber>
+                            {round(totalPerSecond).toLocaleString()}
+                        </DamageItemNumber>
+                    </ChartFooter>
+                )}
+            </Content>
+        </Container>
+    );
+};
 
 export default DetailChart;
 
@@ -238,9 +248,10 @@ const ChartFooter = styled.div`
 /**
  * Styled div which can be used as a damage meter line.
  */
-const DamageItemContainer = styled.div<{$width: number, $background: string, $color: string}>`
-    background: ${props => `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
-    color: ${props => props.$color};
+const DamageItemContainer = styled.div<{ $width: number; $background: string; $color: string }>`
+    background: ${(props) =>
+        `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
+    color: ${(props) => props.$color};
     padding: 4px;
     user-select: none;
     cursor: pointer;
@@ -252,9 +263,9 @@ const DamageItemContainer = styled.div<{$width: number, $background: string, $co
     &:hover {
         filter: brightness(1.25);
     }
-    
+
     &:active {
-        filter: brightness(.65);
+        filter: brightness(0.65);
     }
 `;
 
@@ -262,13 +273,13 @@ const DamageItemContainer = styled.div<{$width: number, $background: string, $co
  * Styled div which formats text for the DamageItemContainer.
  */
 const DamageItemText = styled.div`
-    font-size: .9em;
+    font-size: 0.9em;
 `;
 
 /**
  * Styled div which formats text for the DamageItemContainer.
  */
 const DamageItemNumber = styled.div`
-    font-size: .9em;
+    font-size: 0.9em;
     text-align: center;
 `;

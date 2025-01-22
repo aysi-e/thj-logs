@@ -1,4 +1,4 @@
-import Parser, {UNKNOWN_ID} from "./parser.ts";
+import Parser, { UNKNOWN_ID } from './parser.ts';
 
 export type Handler = {
     /**
@@ -14,72 +14,152 @@ export type Handler = {
      * @param parser the parser object.
      */
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => any;
-}
+};
 
 /**
  * Type representing each kind of melee damage type present in an EverQuest log file.
  */
-export type MeleeDamageType = 'maul' | 'bite' | 'mauls' | 'bites' | 'claw' | 'claws' | 'gore' | 'gores' | 'sting' | 'stings' | 'slices' | 'slice' | 'smash' | 'smashes' | 'rend' | 'rends' | 'slash' | 'slashes' | 'punch' | 'punches' | 'hit' | 'hits' | 'crush' | 'crushes' | 'pierce' | 'pierces' | 'kick' | 'kicks' | 'strike' | 'strikes' | 'backstab' | 'backstabs' | 'bash' | 'bashes' | 'frenzy on' | 'frenzies on' | 'frenzy';
+export type MeleeDamageType =
+    | 'maul'
+    | 'bite'
+    | 'mauls'
+    | 'bites'
+    | 'claw'
+    | 'claws'
+    | 'gore'
+    | 'gores'
+    | 'sting'
+    | 'stings'
+    | 'slices'
+    | 'slice'
+    | 'smash'
+    | 'smashes'
+    | 'rend'
+    | 'rends'
+    | 'slash'
+    | 'slashes'
+    | 'punch'
+    | 'punches'
+    | 'hit'
+    | 'hits'
+    | 'crush'
+    | 'crushes'
+    | 'pierce'
+    | 'pierces'
+    | 'kick'
+    | 'kicks'
+    | 'strike'
+    | 'strikes'
+    | 'backstab'
+    | 'backstabs'
+    | 'bash'
+    | 'bashes'
+    | 'frenzy on'
+    | 'frenzies on'
+    | 'frenzy';
 
 /**
  * Special types of melee damage that might appear in an EverQuest log file.
  */
-export type SpecialMeleeType = 'assassinate' | 'finishing blow' | 'cleave' | 'headshot' | 'slay undead';
+export type SpecialMeleeType =
+    | 'assassinate'
+    | 'finishing blow'
+    | 'cleave'
+    | 'headshot'
+    | 'slay undead';
 
 /**
  * Map which normalizes singular/plural melee damage types.
  */
 export const MELEE_DAMAGE_TYPE_NORMALIZE_MAP: Record<MeleeDamageType, MeleeDamageType> = {
-    'maul': 'maul',
-    'bite': 'bite',
-    'mauls': 'maul',
-    'bites': 'bite',
-    'claw': 'claw',
-    'claws': 'claw',
-    'gore': 'gore',
-    'gores': 'gore',
-    'sting': 'sting',
-    'stings': 'sting',
-    'slices': 'slice',
-    'slice': 'slice',
-    'smash': 'smash',
-    'smashes': 'smash',
-    'rend': 'rend',
-    'rends': 'rend',
-    'slash': 'slash',
-    'slashes': 'slash',
-    'punch': 'punch',
-    'punches': 'punch',
-    'hit': 'hit',
-    'hits': 'hit',
-    'crush': 'crush',
-    'crushes': 'crush',
-    'pierce': 'pierce',
-    'pierces': 'pierce',
-    'kick': 'kick',
-    'kicks': 'kick',
-    'strike': 'strike',
-    'strikes': 'strike',
-    'backstab': 'backstab',
-    'backstabs': 'backstab',
-    'bash': 'bash',
-    'bashes': 'bash',
-    'frenzy': 'frenzy',
+    maul: 'maul',
+    bite: 'bite',
+    mauls: 'maul',
+    bites: 'bite',
+    claw: 'claw',
+    claws: 'claw',
+    gore: 'gore',
+    gores: 'gore',
+    sting: 'sting',
+    stings: 'sting',
+    slices: 'slice',
+    slice: 'slice',
+    smash: 'smash',
+    smashes: 'smash',
+    rend: 'rend',
+    rends: 'rend',
+    slash: 'slash',
+    slashes: 'slash',
+    punch: 'punch',
+    punches: 'punch',
+    hit: 'hit',
+    hits: 'hit',
+    crush: 'crush',
+    crushes: 'crush',
+    pierce: 'pierce',
+    pierces: 'pierce',
+    kick: 'kick',
+    kicks: 'kick',
+    strike: 'strike',
+    strikes: 'strike',
+    backstab: 'backstab',
+    backstabs: 'backstab',
+    bash: 'bash',
+    bashes: 'bash',
+    frenzy: 'frenzy',
     'frenzy on': 'frenzy',
-    'frenzies on': 'frenzy'
-}
+    'frenzies on': 'frenzy',
+};
 
 /**
  * List containing each singular melee damage type, for regular expressions.
  */
-const MELEE_DAMAGE_TYPE_SINGULAR = ['maul', 'bite', 'claw', 'gore', 'sting', 'slice', 'smash', 'rend', 'slash', 'punch', 'hit', 'crush', 'pierce', 'kick', 'strike', 'backstab', 'bash', 'frenzy on']
-const MELEE_DAMAGE_TYPE_SINGULAR_GROUP = `(${MELEE_DAMAGE_TYPE_SINGULAR.join('|')})`
+const MELEE_DAMAGE_TYPE_SINGULAR = [
+    'maul',
+    'bite',
+    'claw',
+    'gore',
+    'sting',
+    'slice',
+    'smash',
+    'rend',
+    'slash',
+    'punch',
+    'hit',
+    'crush',
+    'pierce',
+    'kick',
+    'strike',
+    'backstab',
+    'bash',
+    'frenzy on',
+];
+const MELEE_DAMAGE_TYPE_SINGULAR_GROUP = `(${MELEE_DAMAGE_TYPE_SINGULAR.join('|')})`;
 
 /**
  * List containing each plural melee damage type, for regular expressions.
  */
-const MELEE_DAMAGE_TYPE_PLURALS = ['mauls', 'bites', 'claws', 'gores', 'stings', 'slices', 'smashes', 'rends', 'slashes', 'punches', 'hits', 'crushes', 'pierces', 'kicks', 'strikes', 'backstabs', 'bashes', 'frenzies on']
-const MELEE_DAMAGE_TYPE_PLURAL_GROUP = `(${MELEE_DAMAGE_TYPE_PLURALS.join('|')})`
+const MELEE_DAMAGE_TYPE_PLURALS = [
+    'mauls',
+    'bites',
+    'claws',
+    'gores',
+    'stings',
+    'slices',
+    'smashes',
+    'rends',
+    'slashes',
+    'punches',
+    'hits',
+    'crushes',
+    'pierces',
+    'kicks',
+    'strikes',
+    'backstabs',
+    'bashes',
+    'frenzies on',
+];
+const MELEE_DAMAGE_TYPE_PLURAL_GROUP = `(${MELEE_DAMAGE_TYPE_PLURALS.join('|')})`;
 
 /**
  * Handler for player melee hits.
@@ -87,37 +167,60 @@ const MELEE_DAMAGE_TYPE_PLURAL_GROUP = `(${MELEE_DAMAGE_TYPE_PLURALS.join('|')})
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const PLAYER_MELEE_HIT = {
-    regex: new RegExp(`^You ${MELEE_DAMAGE_TYPE_SINGULAR_GROUP} (.+) for (\\d+) points? of damage\.$`),
+    regex: new RegExp(
+        `^You ${MELEE_DAMAGE_TYPE_SINGULAR_GROUP} (.+) for (\\d+) points? of damage\.$`,
+    ),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, attackType, target, damage] = line;
-        parser.addPlayerMeleeHit(timestamp, attackType as MeleeDamageType, target, parseInt(damage));
+        parser.addPlayerMeleeHit(
+            timestamp,
+            attackType as MeleeDamageType,
+            target,
+            parseInt(damage),
+        );
         parser.nextLineCritical = false;
-    }
-}
+    },
+};
 
 /**
  * Type representing each possible way that melee damage could miss.
  */
-export type MeleeMissType = 'block' | 'blocks' | 'miss' | 'misses' | 'riposte' | 'ripostes' | 'parry' | 'parries' | 'dodge' | 'dodges' | 'absorb'| 'absorbs' | 'immune';
+export type MeleeMissType =
+    | 'block'
+    | 'blocks'
+    | 'miss'
+    | 'misses'
+    | 'riposte'
+    | 'ripostes'
+    | 'parry'
+    | 'parries'
+    | 'dodge'
+    | 'dodges'
+    | 'absorb'
+    | 'absorbs'
+    | 'immune';
 
 /**
  * Map which normalizes singular/plural melee miss types.
  */
-export const MELEE_MISS_TYPE_NORMALIZE_MAP: Record<MeleeMissType, 'block' | 'miss' | 'riposte' | 'parry' | 'dodge' | 'absorb' | 'immune'> = {
-    'block': 'block',
-    'blocks': 'block',
-    'miss': 'miss',
-    'misses': 'miss',
-    'riposte': 'riposte',
-    'ripostes': 'riposte',
-    'parry': 'parry',
-    'parries': 'parry',
-    'dodge': 'dodge',
-    'dodges': 'dodge',
-    'absorb': 'absorb',
-    'absorbs': 'absorb',
-    'immune': 'immune',
-}
+export const MELEE_MISS_TYPE_NORMALIZE_MAP: Record<
+    MeleeMissType,
+    'block' | 'miss' | 'riposte' | 'parry' | 'dodge' | 'absorb' | 'immune'
+> = {
+    block: 'block',
+    blocks: 'block',
+    miss: 'miss',
+    misses: 'miss',
+    riposte: 'riposte',
+    ripostes: 'riposte',
+    parry: 'parry',
+    parries: 'parry',
+    dodge: 'dodge',
+    dodges: 'dodge',
+    absorb: 'absorb',
+    absorbs: 'absorb',
+    immune: 'immune',
+};
 
 /**
  * Handler for player melee misses.
@@ -129,17 +232,17 @@ export const PLAYER_MELEE_MISS = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, attackType, target, rest] = line;
         if (rest === 'miss') {
-            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, "misses");
-        } else if (rest.includes("magical skin absorbs the blow")) {
-            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, "absorbs");
-        } else if (rest.includes("INVULNERABLE")) {
-            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, "immune");
+            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, 'misses');
+        } else if (rest.includes('magical skin absorbs the blow')) {
+            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, 'absorbs');
+        } else if (rest.includes('INVULNERABLE')) {
+            parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, 'immune');
         } else {
             const missType = new RegExp(`(\\w+)$`, 'g').exec(rest)![1] as MeleeMissType;
             parser.addPlayerMeleeMiss(timestamp, attackType as MeleeDamageType, target, missType);
         }
-    }
-}
+    },
+};
 
 /**
  * Handler for critical melee hits.
@@ -155,9 +258,13 @@ export const CRITICAL_MELEE = {
         // attempt to evaluate this critical melee as an npc melee event.
         if (evaluateOtherMeleeCritical(timestamp, line, parser)) return;
 
-        parser.addWarning(timestamp, `missed-critical-${line[1]}`, `missed melee event for ${line[1]}`)
-    }
-}
+        parser.addWarning(
+            timestamp,
+            `missed-critical-${line[1]}`,
+            `missed melee event for ${line[1]}`,
+        );
+    },
+};
 
 /**
  * Evaluate a (potential) player melee critical event.
@@ -170,7 +277,7 @@ export const CRITICAL_MELEE = {
  * @return true if this is event represents a player melee critical event, false otherwise
  */
 const evaluatePlayerMeleeCritical = (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
-    let nextLine = parser.lookAhead(1) || "";
+    let nextLine = parser.lookAhead(1) || '';
 
     // if this melee critical event belongs to a player, the next line must be either:
     // - a damage shield effect message (YOU are pierced by thorns!)
@@ -178,14 +285,17 @@ const evaluatePlayerMeleeCritical = (timestamp: number, line: RegExpMatchArray, 
     const playerHitDs = new RegExp(`^YOU are .+!$`);
     if (playerHitDs.test(nextLine)) {
         parser.skipAhead(1);
-        nextLine = parser.lookAhead(1) || "";
+        nextLine = parser.lookAhead(1) || '';
     }
 
     // advance forward until we find a line that we can actually parse.
     let i = 1;
-    while (parser.index < parser.lines.length && !parser.handlers.find(it => it.regex.test(nextLine))) {
+    while (
+        parser.index < parser.lines.length &&
+        !parser.handlers.find((it) => it.regex.test(nextLine))
+    ) {
         i++;
-        nextLine = parser.lookAhead(i) || "";
+        nextLine = parser.lookAhead(i) || '';
     }
 
     const playerHit = PLAYER_MELEE_HIT.regex.exec(nextLine);
@@ -195,7 +305,7 @@ const evaluatePlayerMeleeCritical = (timestamp: number, line: RegExpMatchArray, 
     parser.nextLineCritical = true;
     PLAYER_MELEE_HIT.evaluate(timestamp, playerHit, parser);
     return true;
-}
+};
 
 /**
  * Evaluate a (potential) NPC melee critical event.
@@ -213,23 +323,26 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
     // - a damage shield hit message (if the entity is an enemy) (Kerafyrm was hit by non-melee for 76 points of damage.)
     // - a damage shield effect message (if the entity is an ally) (Scrap was pierced by thorns.)
     // - a melee damage hit message (Kerafyrm hits Zumab for 1125 points of damage.) OR an absorb message
-    let nextLine = parser.lookAhead(1) || "";
+    let nextLine = parser.lookAhead(1) || '';
 
     const dsHit = OTHER_DAMAGE_SHIELD_HIT.regex.exec(nextLine);
     if (dsHit) {
         // we encountered a damage shield hit.
         parser.skipAhead(1);
         OTHER_DAMAGE_SHIELD_HIT.evaluate(timestamp, dsHit, parser);
-        nextLine = parser.lookAhead(1) || "";
+        nextLine = parser.lookAhead(1) || '';
     } else if (new RegExp(`^(.+) was (.+).`).test(nextLine)) {
         // we encountered a damage shield effect
         parser.skipAhead(1);
-        nextLine = parser.lookAhead(1) || "";
+        nextLine = parser.lookAhead(1) || '';
     }
 
     // advance forward until we find a line that we can actually parse.
-    while (parser.index < parser.lines.length && !parser.handlers.find(it => it.regex.test(nextLine))) {
-        nextLine = parser.skipAhead(1) || "";
+    while (
+        parser.index < parser.lines.length &&
+        !parser.handlers.find((it) => it.regex.test(nextLine))
+    ) {
+        nextLine = parser.skipAhead(1) || '';
     }
 
     // we should be able to find our melee hit...
@@ -243,13 +356,17 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
 
     // it could be absorbed...
     const otherMiss = OTHER_MELEE_MISS.regex.exec(nextLine);
-    if (otherMiss && otherMiss[1].toLowerCase() === line[1].toLowerCase() && otherMiss[4].includes("magical skin absorbs the blow")) {
+    if (
+        otherMiss &&
+        otherMiss[1].toLowerCase() === line[1].toLowerCase() &&
+        otherMiss[4].includes('magical skin absorbs the blow')
+    ) {
         return true;
     }
 
     // we could have slain the enemy this second...
     const lookback = parser.lookBack(timestamp);
-    const kill = lookback.find(it => {
+    const kill = lookback.find((it) => {
         const od = OTHER_DEATH.regex.exec(it);
         if (od && od[2].toLowerCase() === line[1].toLowerCase()) return true;
 
@@ -265,8 +382,7 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
 
     // we have failed to account for our melee critical
     return false;
-}
-
+};
 
 /**
  * Handler for non-player melee hits.
@@ -274,13 +390,21 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const OTHER_MELEE_HIT = {
-    regex: new RegExp(`^(.+?) ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.(?: \\(Rampage\\))?$`),
+    regex: new RegExp(
+        `^(.+?) ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (?!by non-melee)(.+) for (\\d+) points? of damage\.(?: \\(Rampage\\))?$`,
+    ),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, damage] = line;
-        parser.addOtherMeleeHit(timestamp, source, attackType as MeleeDamageType, target, parseInt(damage));
+        parser.addOtherMeleeHit(
+            timestamp,
+            source,
+            attackType as MeleeDamageType,
+            target,
+            parseInt(damage),
+        );
         parser.nextLineCritical = false;
-    }
-}
+    },
+};
 
 /**
  * Handler for non-player melee misses.
@@ -292,17 +416,41 @@ export const OTHER_MELEE_MISS = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, rest] = line;
         if (rest === 'misses') {
-            parser.addOtherMeleeMiss(timestamp, source, attackType as MeleeDamageType, target, "misses");
-        } else if (rest.includes("magical skin absorbs the blow")) {
-            parser.addOtherMeleeMiss(timestamp, source, attackType as MeleeDamageType, target, "absorbs");
-        } else if (rest.includes("are INVULNERABLE")) {
-            parser.addOtherMeleeMiss(timestamp, source, attackType as MeleeDamageType, target, "immune");
+            parser.addOtherMeleeMiss(
+                timestamp,
+                source,
+                attackType as MeleeDamageType,
+                target,
+                'misses',
+            );
+        } else if (rest.includes('magical skin absorbs the blow')) {
+            parser.addOtherMeleeMiss(
+                timestamp,
+                source,
+                attackType as MeleeDamageType,
+                target,
+                'absorbs',
+            );
+        } else if (rest.includes('are INVULNERABLE')) {
+            parser.addOtherMeleeMiss(
+                timestamp,
+                source,
+                attackType as MeleeDamageType,
+                target,
+                'immune',
+            );
         } else {
             const missType = new RegExp(`(\\w+)$`, 'g').exec(rest)![1] as MeleeMissType;
-            parser.addOtherMeleeMiss(timestamp, source, attackType as MeleeDamageType, target, missType);
+            parser.addOtherMeleeMiss(
+                timestamp,
+                source,
+                attackType as MeleeDamageType,
+                target,
+                missType,
+            );
         }
-    }
-}
+    },
+};
 
 /**
  * Handler for non-player damage shield hits.
@@ -324,11 +472,18 @@ export const OTHER_DAMAGE_SHIELD_HIT = {
                 // some (bard?) damage shields don't have descriptions. and sometimes the effect messages just don't
                 // show up in the log.
                 // the hit that caused the damage shield (to determine the source of the damage shield)
-                const damageSourceLine = OTHER_MELEE_HIT.regex.exec(line1) || OTHER_MELEE_MISS.regex.exec(line1);
+                const damageSourceLine =
+                    OTHER_MELEE_HIT.regex.exec(line1) || OTHER_MELEE_MISS.regex.exec(line1);
                 if (damageSourceLine) {
                     const [_1, _2, _3, damageSource] = damageSourceLine;
                     const [_, source, damage] = line;
-                    parser.addOtherDamageShield(timestamp, source, damageSource, ``, parseInt(damage))
+                    parser.addOtherDamageShield(
+                        timestamp,
+                        source,
+                        damageSource,
+                        ``,
+                        parseInt(damage),
+                    );
                 }
             } else if (line2) {
                 parser.skipAhead(1);
@@ -336,17 +491,24 @@ export const OTHER_DAMAGE_SHIELD_HIT = {
                 // ex: Target was burned.
                 const effectLine = new RegExp(`^(.+) was (.+).`).exec(line1);
                 // the hit that caused the damage shield (to determine the source of the damage shield)
-                const damageSourceLine = OTHER_MELEE_HIT.regex.exec(line2) || OTHER_MELEE_MISS.regex.exec(line2);
+                const damageSourceLine =
+                    OTHER_MELEE_HIT.regex.exec(line2) || OTHER_MELEE_MISS.regex.exec(line2);
                 if (effectLine && damageSourceLine) {
                     const [_, source, damage] = line;
                     const [_1, _2, _3, damageSource] = damageSourceLine;
                     const [_4, _5, effect] = effectLine;
-                    parser.addOtherDamageShield(timestamp, source, damageSource, effect, parseInt(damage))
+                    parser.addOtherDamageShield(
+                        timestamp,
+                        source,
+                        damageSource,
+                        effect,
+                        parseInt(damage),
+                    );
                 }
             }
         }
-    }
-}
+    },
+};
 
 /**
  * Handler for player critical spell hits.
@@ -360,13 +522,13 @@ export const YOU_CRITICAL_SPELL = {
     regex: new RegExp(`^You deliver a critical blast! \\((\\d+)\\) \\((.+)\\)$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         if (!parser.player.name) {
-            const nextLine = OTHER_CRITICAL_SPELL.regex.exec(parser.lookAhead(1) || "");
+            const nextLine = OTHER_CRITICAL_SPELL.regex.exec(parser.lookAhead(1) || '');
             if (nextLine) parser.associatePlayer(nextLine[1]);
         }
 
         parser.nextLineCritical = true;
-    }
-}
+    },
+};
 
 /**
  * Handler for critical spell hits performed by non-player characters.
@@ -379,8 +541,8 @@ export const OTHER_CRITICAL_SPELL = {
     regex: new RegExp(`^(.+?) delivers a critical blast! \\((\\d+)\\) \\((.+)\\)$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         parser.nextLineCritical = true;
-    }
-}
+    },
+};
 
 /**
  * Handler for spell hits.
@@ -402,8 +564,8 @@ export const SPELL_HIT = {
         }
 
         parser.nextLineCritical = false;
-    }
-}
+    },
+};
 
 /**
  * Handler for spells that hit the player.
@@ -415,8 +577,8 @@ export const SPELL_HIT_YOU = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, description, damage] = line;
         parser.addUnknownPlayerSpellHit(timestamp, description, parseInt(damage));
-    }
-}
+    },
+};
 
 /**
  * Handler for zone change messages.
@@ -428,8 +590,8 @@ export const ZONE_CHANGE = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, zone] = line;
         if (zone !== `an Arena (PvP) area`) parser.changeZone(timestamp, zone);
-    }
-}
+    },
+};
 
 /**
  * Handler for player death events.
@@ -439,8 +601,8 @@ export const PLAYER_DEATH = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, killer] = line;
         parser.addPlayerDeath(timestamp, killer);
-    }
-}
+    },
+};
 
 /**
  * Handler for when a player kills an enemy.
@@ -450,8 +612,8 @@ export const PLAYER_KILL = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, killed] = line;
         parser.addPlayerKill(timestamp, killed);
-    }
-}
+    },
+};
 
 /**
  * Handler for other entity death events.
@@ -461,5 +623,5 @@ export const OTHER_DEATH = {
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, killed, killer] = line;
         parser.addOtherDeath(timestamp, killer, killed);
-    }
-}
+    },
+};

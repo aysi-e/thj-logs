@@ -1,12 +1,16 @@
-import {MELEE_MISS_TYPE_NORMALIZE_MAP, MeleeDamageType, MeleeMissType, SpecialMeleeType} from "./handlers.ts";
-import {forEach} from "lodash";
-import {PLAYER_ID} from "./parser.ts";
+import {
+    MELEE_MISS_TYPE_NORMALIZE_MAP,
+    MeleeDamageType,
+    MeleeMissType,
+    SpecialMeleeType,
+} from './handlers.ts';
+import { forEach } from 'lodash';
+import { PLAYER_ID } from './parser.ts';
 
 /**
  * Class representing an individual entity existing in a combat encounter.
  */
 export default class Entity {
-
     /**
      * The entity name - a display name for this entity.
      *
@@ -83,14 +87,12 @@ export default class Entity {
         entity.isBoss = this.isBoss;
         return entity;
     }
-
 }
 
 /**
  * An entity class representing the logging player.
  */
 export class Player extends Entity {
-
     /**
      * Construct a player entity.
      */
@@ -119,13 +121,12 @@ export type EntityDeath = {
      * The death recap for this death event. Only present for non-enemy entities.
      */
     recap: DeathRecapItem[] | undefined;
-}
+};
 
 /**
  * Type representing a 'death recap' for an entity's death.
  */
 export type DeathRecapItem = {
-
     /**
      * The source entity id, or undefined if the source was unknown.
      */
@@ -151,13 +152,12 @@ export type DeathRecapItem = {
      * it'll always be multiples of a thousand).
      */
     timeBeforeDeath: number;
-}
+};
 
 /**
  * Type containing combat events affecting or originating from an entity.
  */
 export class CombatEvents {
-
     /**
      * Melee combat events involving this entity, keyed by target and damage type.
      */
@@ -193,12 +193,13 @@ export class CombatEvents {
         isCritical: boolean = false,
     ) {
         if (!this.melee[targetId]) this.melee[targetId] = {};
-        if (!this.melee[targetId][type]) this.melee[targetId][type] = new MeleeDamage(type, targetId);
+        if (!this.melee[targetId][type])
+            this.melee[targetId][type] = new MeleeDamage(type, targetId);
 
         const md = this.melee[targetId][type];
 
         if (isCritical) {
-            md.crits++
+            md.crits++;
         } else {
             md.hits++;
         }
@@ -208,7 +209,7 @@ export class CombatEvents {
         if (md.max === undefined || damage > md.max) md.max = damage;
         if (md.average === undefined) {
             md.average = damage;
-        }  else {
+        } else {
             md.average = (md.average + damage) / 2;
         }
     }
@@ -223,7 +224,8 @@ export class CombatEvents {
     addMeleeMiss(type: MeleeDamageType, targetId: string, missType: MeleeMissType) {
         const miss = MELEE_MISS_TYPE_NORMALIZE_MAP[missType];
         if (!this.melee[targetId]) this.melee[targetId] = {};
-        if (!this.melee[targetId][type]) this.melee[targetId][type] = new MeleeDamage(type, targetId);
+        if (!this.melee[targetId][type])
+            this.melee[targetId][type] = new MeleeDamage(type, targetId);
 
         const md = this.melee[targetId][type];
 
@@ -240,7 +242,8 @@ export class CombatEvents {
      */
     addDamageShield(effect: string, targetId: string, damage: number) {
         if (!this.ds[targetId]) this.ds[targetId] = {};
-        if (!this.ds[targetId][effect]) this.ds[targetId][effect] = new DamageShieldDamage(effect, targetId);
+        if (!this.ds[targetId][effect])
+            this.ds[targetId][effect] = new DamageShieldDamage(effect, targetId);
 
         const ds = this.ds[targetId][effect];
         ds.hits++;
@@ -257,7 +260,8 @@ export class CombatEvents {
      */
     addSpellHit(spellName: string, targetId: string, damage: number, isCritical: boolean = false) {
         if (!this.spell[targetId]) this.spell[targetId] = {};
-        if (!this.spell[targetId][spellName]) this.spell[targetId][spellName] = new SpellDamage(spellName, targetId);
+        if (!this.spell[targetId][spellName])
+            this.spell[targetId][spellName] = new SpellDamage(spellName, targetId);
 
         const spell = this.spell[targetId][spellName];
 
@@ -273,7 +277,7 @@ export class CombatEvents {
         if (spell.max === undefined || damage > spell.max) spell.max = damage;
         if (spell.average === undefined) {
             spell.average = damage;
-        }  else {
+        } else {
             spell.average = (spell.average + damage) / 2;
         }
     }
@@ -308,7 +312,7 @@ export class CombatEvents {
                         const thisSpell = this.spell[target][name];
                         thisSpell.addFrom(otherSpell);
                     }
-                })
+                });
             }
         });
 
@@ -323,7 +327,7 @@ export class CombatEvents {
                         const thisDs = this.ds[target][name];
                         thisDs.addFrom(otherDs);
                     }
-                })
+                });
             }
         });
     }
@@ -333,7 +337,6 @@ export class CombatEvents {
  * Data type compiling statistics about melee damage done by an entity during an encounter.
  */
 export class MeleeDamage {
-
     /**
      * The total number of hits for this damage type.
      */
@@ -407,7 +410,7 @@ export class MeleeDamage {
      */
     constructor(
         readonly type: string,
-        readonly targetId: string
+        readonly targetId: string,
     ) {}
 
     /**
@@ -429,7 +432,8 @@ export class MeleeDamage {
         this.total += other.total;
 
         if (other.max && (this.max === undefined || other.max > this.max)) this.max = other.max;
-        if (other.min !== undefined && (this.min === undefined || other.min < this.min)) this.min = other.min;
+        if (other.min !== undefined && (this.min === undefined || other.min < this.min))
+            this.min = other.min;
         if (other.average !== undefined) {
             if (this.average === undefined) {
                 this.average = other.average;
@@ -437,7 +441,6 @@ export class MeleeDamage {
                 this.average = (this.average + other.average) / 2;
             }
         }
-
     }
 }
 
@@ -445,7 +448,6 @@ export class MeleeDamage {
  * Data type compiling statistics about spell damage done by an entity during an encounter.
  */
 export class SpellDamage {
-
     /**
      * The total number of hits for this damage type.
      */
@@ -499,7 +501,7 @@ export class SpellDamage {
      */
     constructor(
         readonly name: string,
-        readonly targetId: string
+        readonly targetId: string,
     ) {}
 
     /**
@@ -518,7 +520,8 @@ export class SpellDamage {
         this.total += other.total;
 
         if (other.max && (this.max === undefined || other.max > this.max)) this.max = other.max;
-        if (other.min !== undefined && (this.min === undefined || other.min < this.min)) this.min = other.min;
+        if (other.min !== undefined && (this.min === undefined || other.min < this.min))
+            this.min = other.min;
         if (other.average !== undefined) {
             if (this.average === undefined) {
                 this.average = other.average;
@@ -533,7 +536,6 @@ export class SpellDamage {
  * Data type compiling statistics about damage shield damage done by an entity during an encounter.
  */
 export class DamageShieldDamage {
-
     /**
      * The total number of hits for this damage type.
      */
@@ -552,7 +554,7 @@ export class DamageShieldDamage {
      */
     constructor(
         readonly effect: string,
-        readonly targetId: string
+        readonly targetId: string,
     ) {}
 
     /**

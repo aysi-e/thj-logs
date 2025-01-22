@@ -1,17 +1,30 @@
-import {has, isEmpty, last, values} from "lodash";
+import { has, isEmpty, last, values } from 'lodash';
 import {
     Handler,
-    CRITICAL_MELEE, MELEE_DAMAGE_TYPE_NORMALIZE_MAP, MELEE_MISS_TYPE_NORMALIZE_MAP,
-    MeleeDamageType, MeleeMissType, OTHER_CRITICAL_SPELL, OTHER_DAMAGE_SHIELD_HIT, OTHER_DEATH,
-    OTHER_MELEE_HIT, OTHER_MELEE_MISS, PLAYER_DEATH, PLAYER_KILL,
+    CRITICAL_MELEE,
+    MELEE_DAMAGE_TYPE_NORMALIZE_MAP,
+    MELEE_MISS_TYPE_NORMALIZE_MAP,
+    MeleeDamageType,
+    MeleeMissType,
+    OTHER_CRITICAL_SPELL,
+    OTHER_DAMAGE_SHIELD_HIT,
+    OTHER_DEATH,
+    OTHER_MELEE_HIT,
+    OTHER_MELEE_MISS,
+    PLAYER_DEATH,
+    PLAYER_KILL,
     PLAYER_MELEE_HIT,
-    PLAYER_MELEE_MISS, SPELL_HIT, SPELL_HIT_YOU, YOU_CRITICAL_SPELL, ZONE_CHANGE
-} from "./handlers.ts";
-import {DateTime} from "luxon";
+    PLAYER_MELEE_MISS,
+    SPELL_HIT,
+    SPELL_HIT_YOU,
+    YOU_CRITICAL_SPELL,
+    ZONE_CHANGE,
+} from './handlers.ts';
+import { DateTime } from 'luxon';
 import { customAlphabet } from 'nanoid/non-secure';
-import Entity, {Player} from "./entity.ts";
-import {BOSSES_BY_NAME} from "./data.ts";
-import Timeline from "./timeline.ts";
+import Entity, { Player } from './entity.ts';
+import { BOSSES_BY_NAME } from './data.ts';
+import Timeline from './timeline.ts';
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 16);
 
 /**
@@ -34,9 +47,13 @@ const TIMESTAMP_REGEX = new RegExp(`^\\[(.*?)\] (.*)$`);
  */
 const CHAT_SPAM_AVOIDLIST = [
     // ignore chat messages from others
-    new RegExp(`^.+ (?:tells you,|says,?(?: out of character,)?|shouts|auctions,|tells the group,|tells the guild,|tells the raid,) '.+'`),
+    new RegExp(
+        `^.+ (?:tells you,|says,?(?: out of character,)?|shouts|auctions,|tells the group,|tells the guild,|tells the raid,) '.+'`,
+    ),
     // ignore chat messages from self
-    new RegExp(`^You (?:say(?: out of character)?|shout|tell your party|tell your raid|tell .+|auction), '.+'$`),
+    new RegExp(
+        `^You (?:say(?: out of character)?|shout|tell your party|tell your raid|tell .+|auction), '.+'$`,
+    ),
     // ignore exp gain messages
     new RegExp(`^You gain experience!!$`),
     new RegExp(`^You gain bonus AA experience!`),
@@ -63,13 +80,12 @@ const CHAT_SPAM_AVOIDLIST = [
 
     // ignore spell worn off messages (they aren't consistent enough to care about)
     new RegExp(`^Your .+ spell has worn off of .+\.$`),
-]
+];
 
 /**
  * A Parser object which ingests a logfile from The Heroes Journey custom EverQuest server.
  */
 export default class Parser {
-
     /**
      * The timestamp of the first event in the log.
      */
@@ -102,7 +118,7 @@ export default class Parser {
         SPELL_HIT_YOU,
         PLAYER_DEATH,
         PLAYER_KILL,
-        OTHER_DEATH
+        OTHER_DEATH,
     ];
 
     /**
@@ -136,7 +152,7 @@ export default class Parser {
      * @param log
      */
     constructor(log: string) {
-        this.lines = log.split(new RegExp("\r?\n"));
+        this.lines = log.split(new RegExp('\r?\n'));
     }
 
     /**
@@ -148,15 +164,15 @@ export default class Parser {
         if (!this.player.name) {
             this.player.name = name;
 
-            this.encounters.forEach(it => {
-                it.entities[PLAYER_ID].name = name
+            this.encounters.forEach((it) => {
+                it.entities[PLAYER_ID].name = name;
                 if (it.entities[name]) {
                     const existing = it.entities[name];
                     it.entities[PLAYER_ID].mergeFrom(existing);
                     delete it.entities[name];
                 }
                 it.timeline.replaceId(name, PLAYER_ID);
-            })
+            });
         }
     }
 
@@ -178,8 +194,8 @@ export default class Parser {
             mappedName = name;
         } else if (name.startsWith(`A `)) {
             // combat log capitalization is inconsistent.
-            id = `a ${name.slice(2, name.length)}`
-            mappedName = `a ${name.slice(2, name.length)}`
+            id = `a ${name.slice(2, name.length)}`;
+            mappedName = `a ${name.slice(2, name.length)}`;
         } else if (name.startsWith(`An `)) {
             id = `an ${name.slice(3, name.length)}`;
             mappedName = `an ${name.slice(3, name.length)}`;
@@ -227,10 +243,10 @@ export default class Parser {
                 const [_, timestamp, rest] = line;
 
                 // should we avoid parsing this line?
-                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(rest));
+                const avoid = CHAT_SPAM_AVOIDLIST.find((it) => it.test(rest));
                 if (!avoid) {
                     // we can parse this line.
-                    const handler = this.handlers.find(it => it.regex.test(rest));
+                    const handler = this.handlers.find((it) => it.regex.test(rest));
                     if (handler) {
                         const time = parseEQTimestamp(timestamp);
                         const params = handler.regex.exec(rest)!;
@@ -267,7 +283,8 @@ export default class Parser {
         if (!this.end || time > this.end) this.end = time;
 
         // if we don't have an encounter, make one.
-        if (this.encounters.length === 0) this.encounters.push(new Encounter(this.player, this.encounters.length.toString()));
+        if (this.encounters.length === 0)
+            this.encounters.push(new Encounter(this.player, this.encounters.length.toString()));
 
         // update the encounter timestamps, and start a new encounter if enough time has elapsed since the previous
         // encounter.
@@ -283,11 +300,13 @@ export default class Parser {
                     // don't keep zero-duration encounters.
                     encounter.reset();
                     encounter.zone = this.zone;
-                } else if (!values(encounter.entities).find(it => it.isEnemy)) {
+                } else if (!values(encounter.entities).find((it) => it.isEnemy)) {
                     // don't keep encounters where we don't have enemies.
                     encounter.reset();
                     encounter.zone = this.zone;
-                } else if (!values(encounter.entities).find(it => it.isBoss || it.deaths.length)) {
+                } else if (
+                    !values(encounter.entities).find((it) => it.isBoss || it.deaths.length)
+                ) {
                     // don't keep non-boss encounters where nobody dies
                     encounter.reset();
                     encounter.zone = this.zone;
@@ -352,7 +371,7 @@ export default class Parser {
                 const line = result[2];
 
                 // should we avoid this next line?
-                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(line));
+                const avoid = CHAT_SPAM_AVOIDLIST.find((it) => it.test(line));
                 if (avoid) return this.lookAhead(i + 1);
 
                 // we can return the line
@@ -377,7 +396,7 @@ export default class Parser {
                 const line = result[2];
 
                 // should we avoid this next line?
-                const avoid = CHAT_SPAM_AVOIDLIST.find(it => it.test(line));
+                const avoid = CHAT_SPAM_AVOIDLIST.find((it) => it.test(line));
                 if (avoid) return this.skipAhead(i + 1);
 
                 // we can advance and return the line.
@@ -409,7 +428,7 @@ export default class Parser {
             if (line) {
                 const time = parseEQTimestamp(line[1]);
                 const rest = line[2];
-                if (end <= time && !CHAT_SPAM_AVOIDLIST.find(it => it.test(rest))) {
+                if (end <= time && !CHAT_SPAM_AVOIDLIST.find((it) => it.test(rest))) {
                     result.push(rest);
                 }
             }
@@ -432,13 +451,26 @@ export default class Parser {
     /**
      * Add a melee event to this Encounter.
      */
-    private addMeleeHit(timestamp: number, source: Entity, type: MeleeDamageType, target: Entity, damage: number) {
+    private addMeleeHit(
+        timestamp: number,
+        source: Entity,
+        type: MeleeDamageType,
+        target: Entity,
+        damage: number,
+    ) {
         this.manageEnemyState(source, target);
         const damageType = MELEE_DAMAGE_TYPE_NORMALIZE_MAP[type];
 
         source.outgoing.addMeleeHit(damageType, target.id, damage, this.nextLineCritical);
         target.incoming.addMeleeHit(damageType, source.id, damage, this.nextLineCritical);
-        last(this.encounters)!.timeline.addDamageEvent(timestamp, source.id, target.id, type, `melee`, damage);
+        last(this.encounters)!.timeline.addDamageEvent(
+            timestamp,
+            source.id,
+            target.id,
+            type,
+            `melee`,
+            damage,
+        );
 
         this.nextLineCritical = false;
         if (source.isDead) source.isDead = false;
@@ -447,7 +479,12 @@ export default class Parser {
     /**
      * Add a melee miss event to this Encounter, originating from the logging player.
      */
-    addPlayerMeleeMiss(timestamp: number, damageType: MeleeDamageType, target: string, missType: MeleeMissType) {
+    addPlayerMeleeMiss(
+        timestamp: number,
+        damageType: MeleeDamageType,
+        target: string,
+        missType: MeleeMissType,
+    ) {
         const encounter = last(this.encounters)!;
         const entity = encounter.getOrCreate(PLAYER_ID);
         const targetEntity = encounter.getOrCreate(this.nameToId(target));
@@ -457,7 +494,13 @@ export default class Parser {
     /**
      * Add a melee miss event to this Encounter.
      */
-    private addMeleeMiss(timestamp: number, source: Entity, damage: MeleeDamageType, target: Entity, miss: MeleeMissType) {
+    private addMeleeMiss(
+        timestamp: number,
+        source: Entity,
+        damage: MeleeDamageType,
+        target: Entity,
+        miss: MeleeMissType,
+    ) {
         this.manageEnemyState(source, target);
         const missType = MELEE_MISS_TYPE_NORMALIZE_MAP[miss];
         const damageType = MELEE_DAMAGE_TYPE_NORMALIZE_MAP[damage];
@@ -471,7 +514,13 @@ export default class Parser {
     /**
      * Add a melee event to this Encounter, originating from an entity.
      */
-    addOtherMeleeHit(timestamp: number, source: string, type: MeleeDamageType, target: string, damage: number) {
+    addOtherMeleeHit(
+        timestamp: number,
+        source: string,
+        type: MeleeDamageType,
+        target: string,
+        damage: number,
+    ) {
         const encounter = last(this.encounters)!;
         const entity = encounter.getOrCreate(this.nameToId(source));
         const targetEntity = encounter.getOrCreate(this.nameToId(target));
@@ -483,7 +532,13 @@ export default class Parser {
     /**
      * Add a melee miss event to this Encounter, originating from an entity.
      */
-    addOtherMeleeMiss(timestamp: number, source: string, damageType: MeleeDamageType, target: string, missType: MeleeMissType) {
+    addOtherMeleeMiss(
+        timestamp: number,
+        source: string,
+        damageType: MeleeDamageType,
+        target: string,
+        missType: MeleeMissType,
+    ) {
         const encounter = last(this.encounters)!;
         const entity = encounter.getOrCreate(this.nameToId(source));
         const targetEntity = encounter.getOrCreate(this.nameToId(target));
@@ -495,7 +550,13 @@ export default class Parser {
     /**
      * Add a damage shield event to this Encounter, originating from an entity.
      */
-    addOtherDamageShield(timestamp: number, source: string, target: string, effect: string, damage: number) {
+    addOtherDamageShield(
+        timestamp: number,
+        source: string,
+        target: string,
+        effect: string,
+        damage: number,
+    ) {
         const encounter = last(this.encounters)!;
         const attacker = encounter.getOrCreate(this.nameToId(source));
         const shielded = encounter.getOrCreate(this.nameToId(target));
@@ -503,22 +564,52 @@ export default class Parser {
 
         attacker.incoming.addDamageShield(effect, shielded.id, damage);
         shielded.outgoing.addDamageShield(effect, attacker.id, damage);
-        encounter.timeline.addDamageEvent(timestamp, shielded.id, attacker.id, effect, `ds`, damage);
+        encounter.timeline.addDamageEvent(
+            timestamp,
+            shielded.id,
+            attacker.id,
+            effect,
+            `ds`,
+            damage,
+        );
     }
 
     /**
      * Add a spell hit event to this Encounter, originating from an entity.
      */
-    addSpellHit(timestamp: number, source: string, target: string, spellName: string, damage: number) {
+    addSpellHit(
+        timestamp: number,
+        source: string,
+        target: string,
+        spellName: string,
+        damage: number,
+    ) {
         const encounter = last(this.encounters)!;
         const sourceEntity = encounter.getOrCreate(this.nameToId(source));
         const targetEntity = encounter.getOrCreate(this.nameToId(target));
 
         this.manageEnemyState(sourceEntity, targetEntity);
 
-        sourceEntity.outgoing.addSpellHit(spellName, targetEntity.id, damage, this.nextLineCritical);
-        targetEntity.incoming.addSpellHit(spellName, sourceEntity.id, damage, this.nextLineCritical);
-        encounter.timeline.addDamageEvent(timestamp, sourceEntity.id, targetEntity.id, spellName, `spell`, damage);
+        sourceEntity.outgoing.addSpellHit(
+            spellName,
+            targetEntity.id,
+            damage,
+            this.nextLineCritical,
+        );
+        targetEntity.incoming.addSpellHit(
+            spellName,
+            sourceEntity.id,
+            damage,
+            this.nextLineCritical,
+        );
+        encounter.timeline.addDamageEvent(
+            timestamp,
+            sourceEntity.id,
+            targetEntity.id,
+            spellName,
+            `spell`,
+            damage,
+        );
 
         this.nextLineCritical = false;
 
@@ -595,7 +686,7 @@ export default class Parser {
             timestamp,
             killerId: player.id,
             recap: undefined,
-        })
+        });
 
         // todo: need logic for multiple enemies with same name
     }
@@ -618,7 +709,7 @@ export default class Parser {
             timestamp,
             killerId: source.id,
             recap: undefined, // todo: death recap for non-enemy death
-        })
+        });
 
         // todo: need logic for multiple enemies with same name
     }
@@ -640,7 +731,6 @@ export default class Parser {
  * Class representing a combat encounter between the player and any number of enemy entities.
  */
 export class Encounter {
-
     /**
      * The start time for this encounter.
      */
@@ -689,7 +779,7 @@ export class Encounter {
     /**
      * Warnings generated when parsing this log.
      */
-    warnings: Record<string, {message: string, count: number}> = {};
+    warnings: Record<string, { message: string; count: number }> = {};
 
     /**
      * Construct an Encounter.
@@ -697,7 +787,10 @@ export class Encounter {
      * @param player a reference to the logging player
      * @param id a unique encounter id
      */
-    constructor(player: Player, readonly id: string = nanoid()) {
+    constructor(
+        player: Player,
+        readonly id: string = nanoid(),
+    ) {
         this.entities[PLAYER_ID] = player.emptyCopy();
     }
 
@@ -707,7 +800,7 @@ export class Encounter {
      * @param entityId the entity id to get or create
      * @return the entity
      */
-    getOrCreate(entityId: string | {name?: string, id: string}): Entity {
+    getOrCreate(entityId: string | { name?: string; id: string }): Entity {
         let name;
         let id;
         if (typeof entityId === 'string') {
@@ -742,7 +835,7 @@ export class Encounter {
      */
     addWarning(timestamp: number, key: string, message: string) {
         if (!this.warnings[key]) {
-            this.warnings[key] = { message, count: 1};
+            this.warnings[key] = { message, count: 1 };
         } else {
             this.warnings[key].count++;
         }
@@ -755,8 +848,8 @@ export class Encounter {
         const player = this.entities[PLAYER_ID].emptyCopy();
         this.timeline = new Timeline();
         this.entities = {
-            [PLAYER_ID]: player
-        }
+            [PLAYER_ID]: player,
+        };
         this.start = 0;
         this.end = 0;
         this.isOver = false;
@@ -772,7 +865,8 @@ export class Encounter {
  *
  * @param timestamp the timestamp string
  */
-const parseEQTimestamp = (timestamp: string) => DateTime.fromFormat(timestamp, "ccc LLL d hh:mm:ss yyyy");
+const parseEQTimestamp = (timestamp: string) =>
+    DateTime.fromFormat(timestamp, 'ccc LLL d hh:mm:ss yyyy');
 
 // things to track (per entity)
 // - outgoing damage

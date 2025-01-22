@@ -1,43 +1,46 @@
-import {observer} from "mobx-react";
-import styled from "styled-components";
-import theme from "../../theme.tsx";
-import {Encounter} from "../../parser/parser.ts";
-import {Navigate, useParams} from "react-router-dom";
-import {values} from "lodash";
-import OutgoingDamageBreakdownChart from "../../ui/encounter/charts/OutgoingDamageBreakdown.tsx";
-import IncomingDamageBreakdownChart from "../../ui/encounter/charts/IncomingDamageBreakdown.tsx";
-import {Line, LineChart, ResponsiveContainer, XAxis, YAxis} from "recharts";
-import {Duration} from "luxon";
-import {toDPSData} from "../../parser/timeline.ts";
-import Entity from "../../parser/entity.ts";
-import {shortenNumber} from "../../util/numbers.ts";
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
+import theme from '../../theme.tsx';
+import { Encounter } from '../../parser/parser.ts';
+import { Navigate, useParams } from 'react-router-dom';
+import { values } from 'lodash';
+import OutgoingDamageBreakdownChart from '../../ui/encounter/charts/OutgoingDamageBreakdown.tsx';
+import IncomingDamageBreakdownChart from '../../ui/encounter/charts/IncomingDamageBreakdown.tsx';
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { Duration } from 'luxon';
+import { toDPSData } from '../../parser/timeline.ts';
+import Entity from '../../parser/entity.ts';
+import { shortenNumber } from '../../util/numbers.ts';
 
 type Props = {
     encounter: Encounter;
-}
+};
 
 /**
  * Component which renders a character detail page.
  */
-const CharacterDetailPage = observer(({encounter}: Props) => {
+const CharacterDetailPage = observer(({ encounter }: Props) => {
     // if our id is invalid, get out of here.
     const id = parseInt(useParams().id || '');
-    if (isNaN(id) || id >= values(encounter.entities).length) return <Navigate to={'../..'} relative={`path`} />
+    if (isNaN(id) || id >= values(encounter.entities).length)
+        return <Navigate to={'../..'} relative={`path`} />;
     const entity = values(encounter.entities)[id];
-    return <Container>
-        <Header>
-            <HeaderText>
-                showing character details for <strong>{entity.name}</strong>
-            </HeaderText>
-        </Header>
-        <Content>
-            <CharacterDamageTimeline entity={entity} encounter={encounter} />
-            <BreakdownContainer>
-                <OutgoingDamageBreakdownChart encounter={encounter} entity={entity}/>
-                <IncomingDamageBreakdownChart encounter={encounter} entity={entity}/>
-            </BreakdownContainer>
-        </Content>
-    </Container>
+    return (
+        <Container>
+            <Header>
+                <HeaderText>
+                    showing character details for <strong>{entity.name}</strong>
+                </HeaderText>
+            </Header>
+            <Content>
+                <CharacterDamageTimeline entity={entity} encounter={encounter} />
+                <BreakdownContainer>
+                    <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+                    <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+                </BreakdownContainer>
+            </Content>
+        </Container>
+    );
 });
 
 export default CharacterDetailPage;
@@ -71,16 +74,16 @@ const HeaderText = styled.div`
  * Styled span for the time text in the header.
  */
 const HeaderTime = styled.span`
-    font-size: .9em;
+    font-size: 0.9em;
 `;
 
 /**
  * Styled span for the colored text in the header.
  */
-const ColoredHeaderText = styled.span<{$failed: boolean}>`
+const ColoredHeaderText = styled.span<{ $failed: boolean }>`
     font-weight: bold;
-    color: ${props => props.$failed ? theme.color.error : theme.color.success};
-`
+    color: ${(props) => (props.$failed ? theme.color.error : theme.color.success)};
+`;
 
 /**
  * A placeholder component for the character damage timeline.
@@ -89,29 +92,41 @@ const ColoredHeaderText = styled.span<{$failed: boolean}>`
  * @param encounter the encounter
  * @constructor
  */
-const CharacterDamageTimeline = ({entity, encounter}: {entity: Entity, encounter: Encounter}) => {
+const CharacterDamageTimeline = ({
+    entity,
+    encounter,
+}: {
+    entity: Entity;
+    encounter: Encounter;
+}) => {
     const data = toDPSData(encounter.timeline, undefined, undefined, [entity.id]);
-    return <EncounterDamageGraphContainer>
-        <Header>
-            <HeaderText>damage per second dealt by {entity.name}</HeaderText>
-        </Header>
-        <ResponsiveContainer width="100%" height={270}>
-            <LineChart
-                data={data}
-                margin={{
-                    top: 16,
-                    right: 12,
-                    left: -4,
-                    bottom: 0,
-                }}
-            >
-                <XAxis dataKey="time" interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5} tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}/>
-                <YAxis tickFormatter={(i) => shortenNumber(i)}/>
-                <Line type="monotone" dataKey="dps" stroke="#82ca9d" dot={false} />
-            </LineChart>
-        </ResponsiveContainer>
-    </EncounterDamageGraphContainer>
-}
+    return (
+        <EncounterDamageGraphContainer>
+            <Header>
+                <HeaderText>damage per second dealt by {entity.name}</HeaderText>
+            </Header>
+            <ResponsiveContainer width='100%' height={270}>
+                <LineChart
+                    data={data}
+                    margin={{
+                        top: 16,
+                        right: 12,
+                        left: -4,
+                        bottom: 0,
+                    }}
+                >
+                    <XAxis
+                        dataKey='time'
+                        interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
+                        tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
+                    />
+                    <YAxis tickFormatter={(i) => shortenNumber(i)} />
+                    <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
+                </LineChart>
+            </ResponsiveContainer>
+        </EncounterDamageGraphContainer>
+    );
+};
 
 /**
  * A container div for the character detail timeline.
@@ -130,7 +145,7 @@ const EncounterDamageGraphContainer = styled.div`
 const Content = styled.div`
     max-width: 800px;
     margin: 8px auto;
-    
+
     color: ${theme.color.white};
     font-family: ${theme.font.header};
 `;
