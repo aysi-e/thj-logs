@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import theme, { ComponentProps } from '../theme';
-import {IconDescription, UIIcon} from "./Icon.tsx";
+import { IconDescription, UIIcon } from './Icon.tsx';
 
 /**
  * Styled button component with a 'selected' state.
@@ -78,12 +78,14 @@ export const IconSelectButton = (props: IconSelectButtonProps) => {
 
     let icon;
     if (props.icon) {
-        icon = <UIIcon
-            path={props.icon}
-            height={iconHeight}
-            width={iconWidth}
-            foregroundColor={theme.color.white}
-        />
+        icon = (
+            <UIIcon
+                path={props.icon}
+                height={iconHeight}
+                width={iconWidth}
+                foregroundColor={theme.color.white}
+            />
+        );
     }
 
     return (
@@ -98,7 +100,7 @@ export const IconSelectButton = (props: IconSelectButtonProps) => {
 /**
  * An empty space which centers the content.
  */
-const EmptyIcon = styled.div<{$width: number, $height: number}>`
-    height: ${props => props.$height}px;
-    width: ${props => props.$width}px;
+const EmptyIcon = styled.div<{ $width: number; $height: number }>`
+    height: ${(props) => props.$height}px;
+    width: ${(props) => props.$width}px;
 `;

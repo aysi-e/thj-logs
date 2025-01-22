@@ -1,6 +1,6 @@
 // webworker block.
 
-import Parser from "./parser.ts";
+import Parser from './parser.ts';
 
 const FILENAME_PARSER = new RegExp(`eqlog_(\\w+)_thj.txt`);
 
@@ -13,7 +13,7 @@ const getNameFromFileName = (fileName: string) => {
     const result = FILENAME_PARSER.exec(fileName);
     if (result) return result[1];
     return undefined;
-}
+};
 
 {
     /**
@@ -22,7 +22,7 @@ const getNameFromFileName = (fileName: string) => {
      * @param e the event.
      */
     onmessage = (e: MessageEvent<File>) => {
-        if (e.data.type !== "text/plain") {
+        if (e.data.type !== 'text/plain') {
             // if the file type is obviously wrong, get out of here.
             return;
         }
@@ -62,7 +62,7 @@ const getNameFromFileName = (fileName: string) => {
             if (!parser.player.name) {
                 postMessage({
                     type: 'error',
-                    message: `couldn't determine logging player's name`
+                    message: `couldn't determine logging player's name`,
                 });
             } else {
                 postMessage({
@@ -72,6 +72,6 @@ const getNameFromFileName = (fileName: string) => {
                     end: parser.end!,
                 });
             }
-        })
-    }
+        });
+    };
 }

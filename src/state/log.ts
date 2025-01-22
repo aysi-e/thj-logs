@@ -1,14 +1,18 @@
-import {makeAutoObservable, runInAction} from "mobx";
-import {Encounter} from "../parser/parser.ts";
-import {createContext} from "react";
-import {EncounterMessage, ErrorMessage, MetadataMessage, ProgressMessage} from "../parser/messages.ts";
-import {round} from "lodash";
+import { makeAutoObservable, runInAction } from 'mobx';
+import { Encounter } from '../parser/parser.ts';
+import { createContext } from 'react';
+import {
+    EncounterMessage,
+    ErrorMessage,
+    MetadataMessage,
+    ProgressMessage,
+} from '../parser/messages.ts';
+import { round } from 'lodash';
 
 /**
  * State class representing an uploaded combat log.
  */
 export class Log {
-
     /**
      * The timestamp of the start time for this combat log.
      */
@@ -49,35 +53,36 @@ export class Log {
      * @param file the file to parse
      */
     parseFile(file: File) {
-        runInAction(() => this.encounters = []);
+        runInAction(() => (this.encounters = []));
 
         const worker = new Worker(new URL('../parser/worker.ts', import.meta.url), {
             type: 'module',
         });
 
-        worker.onmessage = (e: MessageEvent<EncounterMessage | MetadataMessage | ErrorMessage | ProgressMessage>) => {
+        worker.onmessage = (
+            e: MessageEvent<EncounterMessage | MetadataMessage | ErrorMessage | ProgressMessage>,
+        ) => {
             const message = e.data;
             switch (message.type) {
-                case "encounter":
+                case 'encounter':
                     runInAction(() => this.encounters.push(message.encounter));
                     break;
-                case "metadata":
+                case 'metadata':
                     runInAction(() => {
                         this.loggedBy = message.loggedBy;
                         this.end = message.end;
                         this.start = message.start;
                     });
                     break;
-                case "error":
+                case 'error':
                     // todo: error handling
                     break;
-                case "progress":
+                case 'progress':
                     runInAction(() => {
-                        this.progress = round(message.current / message.total * 100);
+                        this.progress = round((message.current / message.total) * 100);
                     });
                     break;
             }
-
         };
 
         worker.postMessage(file);

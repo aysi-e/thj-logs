@@ -1,5 +1,5 @@
-import {Encounter} from "./parser.ts";
-import Timeline from "./timeline.ts";
+import { Encounter } from './parser.ts';
+import Timeline from './timeline.ts';
 
 /**
  * Type representing a progress report from the parser.
@@ -19,7 +19,7 @@ export type ProgressMessage = {
      * The total number of lines in the log file.
      */
     total: number;
-}
+};
 
 /**
  * Type representing an encounter from the parser.
@@ -34,13 +34,12 @@ export type EncounterMessage = {
      * The encounter data.
      */
     encounter: Encounter;
-}
+};
 
 /**
  * Type representing metadata parsed from the log.
  */
 export type MetadataMessage = {
-
     /**
      * This is a metadata message.
      */
@@ -60,13 +59,12 @@ export type MetadataMessage = {
      * The timestamp of the last event in the log.
      */
     end: number;
-}
+};
 
 /**
  * Type representing an error which occurred while parsing the log.
  */
 export type ErrorMessage = {
-
     /**
      * This is an error message.
      */
@@ -76,5 +74,4 @@ export type ErrorMessage = {
      * The error message.
      */
     message: string;
-
-}
+};

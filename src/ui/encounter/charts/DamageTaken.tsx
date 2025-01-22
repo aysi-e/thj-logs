@@ -1,9 +1,9 @@
-import Entity from "../../../parser/entity";
-import { Encounter } from "../../../parser/parser";
-import { values } from "lodash";
-import EncounterChart, {ChartItem} from "./EncounterChart.tsx";
-import {keys} from "mobx";
-import IncomingDamageBreakdownChart from "./IncomingDamageBreakdown.tsx";
+import Entity from '../../../parser/entity';
+import { Encounter } from '../../../parser/parser';
+import { values } from 'lodash';
+import EncounterChart, { ChartItem } from './EncounterChart.tsx';
+import { keys } from 'mobx';
+import IncomingDamageBreakdownChart from './IncomingDamageBreakdown.tsx';
 
 /**
  * Props accepted by encounter detail charts.
@@ -18,8 +18,7 @@ type Props = {
      * The entities that should be used for the chart.
      */
     entities: Entity[];
-}
-
+};
 
 /**
  * Type representing a single line item in a damage meter.
@@ -48,8 +47,8 @@ type DamageEntityItem = {
     /**
      * The entity index in the entity array.
      */
-    index: number,
-}
+    index: number;
+};
 
 /**
  * Convert an entity object into an appropriate data type to use for our damage meter.
@@ -85,9 +84,9 @@ const toDamageTakenEntityItem = (entity: Entity, encounter: Encounter) => {
         entity,
         name: entity.name || entity.id,
         damage,
-        dps: damage / encounter.duration * 1000,
+        dps: (damage / encounter.duration) * 1000,
         index: keys(encounter.entities).indexOf(entity.id),
-    }
+    };
 };
 
 /**
@@ -101,15 +100,15 @@ const toChartItem = (item: DamageEntityItem, total: number): ChartItem => ({
     value: item.damage,
     link: `character/${item.index}`,
     perSecond: item.dps,
-    label: "DTPS",
-    percent: item.damage / total * 100,
-    background: `#9c4646`
-})
+    label: 'DTPS',
+    percent: (item.damage / total) * 100,
+    background: `#9c4646`,
+});
 
 /**
  * An encounter chart which displays data based on damage done during an encounter.
  */
-const DamageTakenChart = ({encounter, entities}: Props) => {
+const DamageTakenChart = ({ encounter, entities }: Props) => {
     if (entities.length === 0) {
         // todo: empty chart.
         return <></>;
@@ -119,21 +118,29 @@ const DamageTakenChart = ({encounter, entities}: Props) => {
     let chart: ChartItem[];
     if (entities.length === 1) {
         const entity = entities[0];
-        return <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+        return <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />;
     } else {
-        const relation = entities.reduce<{items: DamageEntityItem[], allies: boolean, enemies: boolean, total: number}>((acc, val) => {
-            const item = toDamageTakenEntityItem(val, encounter);
-            acc.items.push(item);
-            acc.allies = acc.allies && !val.isEnemy;
-            acc.enemies = acc.enemies && !!val.isEnemy;
-            acc.total += item.damage;
-            return acc;
-        }, {
-            items: [],
-            allies: true,
-            enemies: true,
-            total: 0,
-        });
+        const relation = entities.reduce<{
+            items: DamageEntityItem[];
+            allies: boolean;
+            enemies: boolean;
+            total: number;
+        }>(
+            (acc, val) => {
+                const item = toDamageTakenEntityItem(val, encounter);
+                acc.items.push(item);
+                acc.allies = acc.allies && !val.isEnemy;
+                acc.enemies = acc.enemies && !!val.isEnemy;
+                acc.total += item.damage;
+                return acc;
+            },
+            {
+                items: [],
+                allies: true,
+                enemies: true,
+                total: 0,
+            },
+        );
 
         if (relation.allies) {
             title = `damage taken by allies`;
@@ -144,11 +151,11 @@ const DamageTakenChart = ({encounter, entities}: Props) => {
         }
         chart = relation.items
             .sort((a, b) => b.damage - a.damage)
-            .filter(it => it.damage > 0)
+            .filter((it) => it.damage > 0)
             .map((item) => toChartItem(item, relation.total));
     }
 
-    return <EncounterChart title={title} items={chart}/>
-}
+    return <EncounterChart title={title} items={chart} />;
+};
 
 export default DamageTakenChart;

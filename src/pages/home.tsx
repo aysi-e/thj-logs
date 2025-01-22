@@ -1,12 +1,12 @@
-import {observer} from "mobx-react";
-import styled from "styled-components";
-import {useContext, useEffect, useRef} from "react";
-import {LogContext} from "../state/log.ts";
-import theme from "../theme.tsx";
-import {IconSelectButton} from "../ui/SelectButton.tsx";
-import {UI_UPLOAD} from "../ui/Icon.tsx";
-import {runInAction} from "mobx";
-import {Navigate} from "react-router-dom";
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
+import { useContext, useEffect, useRef } from 'react';
+import { LogContext } from '../state/log.ts';
+import theme from '../theme.tsx';
+import { IconSelectButton } from '../ui/SelectButton.tsx';
+import { UI_UPLOAD } from '../ui/Icon.tsx';
+import { runInAction } from 'mobx';
+import { Navigate } from 'react-router-dom';
 
 /**
  * The home page.
@@ -22,7 +22,7 @@ const HomePage = observer(() => {
      */
     const handleClick = () => {
         buttonRef.current?.click();
-    }
+    };
 
     /**
      * Handle receiving a file from the file input.
@@ -34,11 +34,11 @@ const HomePage = observer(() => {
                 for (let i = 0; i < files.length; i++) {
                     // todo: this doesn't actually work for multiple files because parseFile overrides the log each
                     //  time
-                    log.parseFile(files[i])
+                    log.parseFile(files[i]);
                 }
             }
         });
-    }
+    };
 
     /**
      * Set up an event listener to allow us to read files.
@@ -49,8 +49,8 @@ const HomePage = observer(() => {
         }
 
         return () => {
-            buttonRef.current?.removeEventListener(`change`, handleFileInput)
-        }
+            buttonRef.current?.removeEventListener(`change`, handleFileInput);
+        };
     }, []);
 
     // have we parsed a log?
@@ -59,40 +59,57 @@ const HomePage = observer(() => {
     }
 
     // if we're currently uploading, show a progress bar. if we aren't, show the file browser.
-    const upload = log.progress !== undefined && log.progress < 100 ? <ProgressBar $progress={log.progress}>parsing log ({log.progress}%)</ProgressBar> : <>
-        <StyledUploadButton icon={UI_UPLOAD} text={`open file browser`} onClick={handleClick}/>
-        <input
-            type="file"
-            id="fileElem"
-            multiple
-            accept="text/plain"
-            style={{display: `none`}}
-            ref={buttonRef}
-        />
-    </>
+    const upload =
+        log.progress !== undefined && log.progress < 100 ? (
+            <ProgressBar $progress={log.progress}>parsing log ({log.progress}%)</ProgressBar>
+        ) : (
+            <>
+                <StyledUploadButton
+                    icon={UI_UPLOAD}
+                    text={`open file browser`}
+                    onClick={handleClick}
+                />
+                <input
+                    type='file'
+                    id='fileElem'
+                    multiple
+                    accept='text/plain'
+                    style={{ display: `none` }}
+                    ref={buttonRef}
+                />
+            </>
+        );
 
     // we have not parsed a log.
-    return <Container>
-        <Content>
-            <TextBox>
-                <Header>thj log parser (local)</Header>
-                <ContentText>
-                    <div>drag and drop a log file to view details about your combat encounters</div>
-                    <div>- no data is sent to a server (this client is open source)</div>
-                    <div>- the report is not sharable and only persists for the duration of your browser session</div>
-                </ContentText>
-            </TextBox>
-            {upload}
-        </Content>
-        <Footer>
-            {
-                //<FooterText>click for credits and attributions</FooterText>
-            }
-            <div>not affiliated with or endorsed by EverQuest, Daybreak Games, or the Heroes Journey team</div>
-        </Footer>
-    </Container>
-
-
+    return (
+        <Container>
+            <Content>
+                <TextBox>
+                    <Header>thj log parser (local)</Header>
+                    <ContentText>
+                        <div>
+                            drag and drop a log file to view details about your combat encounters
+                        </div>
+                        <div>- no data is sent to a server (this client is open source)</div>
+                        <div>
+                            - the report is not sharable and only persists for the duration of your
+                            browser session
+                        </div>
+                    </ContentText>
+                </TextBox>
+                {upload}
+            </Content>
+            <Footer>
+                {
+                    //<FooterText>click for credits and attributions</FooterText>
+                }
+                <div>
+                    not affiliated with or endorsed by EverQuest, Daybreak Games, or the Heroes
+                    Journey team
+                </div>
+            </Footer>
+        </Container>
+    );
 });
 
 export default HomePage;
@@ -178,9 +195,14 @@ const StyledUploadButton = styled(IconSelectButton)`
 /**
  * A progress bar div.
  */
-const ProgressBar = styled.div<{$progress: number}>`
-    background: linear-gradient(to right, ${theme.color.success}, ${theme.color.success} ${props => props.$progress}%, transparent ${props => props.$progress}% 100%);
-    color: ${props => props.$progress > 50 ? `black` : `white`};
+const ProgressBar = styled.div<{ $progress: number }>`
+    background: linear-gradient(
+        to right,
+        ${theme.color.success},
+        ${theme.color.success} ${(props) => props.$progress}%,
+        transparent ${(props) => props.$progress}% 100%
+    );
+    color: ${(props) => (props.$progress > 50 ? `black` : `white`)};
     font-size: 1.25em;
     font-family: ${theme.font.content};
     height: 30px;
