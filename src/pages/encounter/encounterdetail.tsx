@@ -125,6 +125,7 @@ const HeaderWarning = styled.div`
     display: flex;
     cursor: pointer;
     margin-right: 10px;
+    z-index: 1;
 `;
 
 /**
