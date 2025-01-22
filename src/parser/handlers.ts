@@ -321,9 +321,15 @@ export const OTHER_DAMAGE_SHIELD_HIT = {
         const line2 = parser.lookAhead(2);
         if (line1) {
             if (OTHER_MELEE_HIT.regex.test(line1) || OTHER_MELEE_MISS.regex.test(line1)) {
-                // some (bard?) damage shields don't have descriptions...
-                const [_, source, damage] = line;
-                parser.addOtherDamageShield(timestamp, source, UNKNOWN_ID, `unknown`, parseInt(damage))
+                // some (bard?) damage shields don't have descriptions. and sometimes the effect messages just don't
+                // show up in the log.
+                // the hit that caused the damage shield (to determine the source of the damage shield)
+                const damageSourceLine = OTHER_MELEE_HIT.regex.exec(line1) || OTHER_MELEE_MISS.regex.exec(line1);
+                if (damageSourceLine) {
+                    const [_1, _2, _3, damageSource] = damageSourceLine;
+                    const [_, source, damage] = line;
+                    parser.addOtherDamageShield(timestamp, source, damageSource, ``, parseInt(damage))
+                }
             } else if (line2) {
                 parser.skipAhead(1);
 
