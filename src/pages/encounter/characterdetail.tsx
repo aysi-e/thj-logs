@@ -4,7 +4,9 @@ import theme from '../../theme.tsx';
 import { Encounter } from '../../parser/parser.ts';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
-import OutgoingDamageBreakdownChart from '../../ui/encounter/charts/OutgoingDamageBreakdown.tsx';
+import OutgoingDamageBreakdownChart, {
+    DetailedOutgoingDamageBreakdownChart,
+} from '../../ui/encounter/charts/OutgoingDamageBreakdown.tsx';
 import IncomingDamageBreakdownChart from '../../ui/encounter/charts/IncomingDamageBreakdown.tsx';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
@@ -35,7 +37,7 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
             <Content>
                 <CharacterDamageTimeline entity={entity} encounter={encounter} />
                 <BreakdownContainer>
-                    <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+                    <DetailedOutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
                     <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
                 </BreakdownContainer>
             </Content>
@@ -156,6 +158,6 @@ const Content = styled.div`
 const BreakdownContainer = styled.div`
     margin-top: 8px;
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
     gap: 8px;
 `;

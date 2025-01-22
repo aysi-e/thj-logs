@@ -1,7 +1,7 @@
 import Entity, { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity';
 import { Encounter } from '../../../parser/parser';
 import { values } from 'lodash';
-import DetailChart, { DetailItem } from './DetailChart.tsx';
+import DetailChart, { DetailItem, ExtraDetailChart } from './DetailChart.tsx';
 
 /**
  * Props accepted by encounter detail charts.
@@ -110,6 +110,15 @@ const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
     const title = `damage dealt by ${entity.name}`;
     const items = toDamageBreakdownItems(entity, encounter);
     return <DetailChart title={title} items={items} />;
+};
+
+/**
+ * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
+ */
+export const DetailedOutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
+    const title = `damage dealt by ${entity.name}`;
+    const items = toDamageBreakdownItems(entity, encounter);
+    return <ExtraDetailChart title={title} items={items} />;
 };
 
 export default OutgoingDamageBreakdownChart;

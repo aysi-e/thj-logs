@@ -283,3 +283,90 @@ const DamageItemNumber = styled.div`
     font-size: 0.9em;
     text-align: center;
 `;
+
+/**
+ * Component which displays a detailed damage breakdown chart for the Character page.
+ * @param props
+ * @constructor
+ */
+export const ExtraDetailChart = (props: Props) => {
+    let totalPerSecond = 0;
+    let totalAmount = 0;
+    const rescale = props.items[0].percent;
+    const items = props.items.map((it: DetailItem) => {
+        totalPerSecond += it.perSecond;
+        totalAmount += it.damage.total;
+        return (
+            <ExtraDetailChartContainer key={`${it.label}-${it.name}`}>
+                <ExtraDetailDamageMeterItem
+                    $color={it.color || `white`}
+                    $background={it.background || theme.color.secondary}
+                    $width={(it.percent / rescale) * 100}
+                >
+                    <DamageItemText>{it.name}</DamageItemText>
+                </ExtraDetailDamageMeterItem>
+                <DamageItemNumber>{round(it.percent, 1)}%</DamageItemNumber>
+                <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
+                <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
+                <DamageItemNumber>{it.damage.hits}</DamageItemNumber>
+                {it.type === 'melee' || it.type === 'spell' ? (
+                    <>
+                        <DamageItemNumber>{it.damage.crits}</DamageItemNumber>
+                        <DamageItemNumber>
+                            {round((it.damage.crits / (it.damage.hits + it.damage.crits)) * 100)}%
+                        </DamageItemNumber>
+                    </>
+                ) : (
+                    <>
+                        <DamageItemNumber />
+                        <DamageItemNumber />
+                    </>
+                )}
+            </ExtraDetailChartContainer>
+        );
+    });
+
+    return (
+        <Container>
+            <Header>{props.title}</Header>
+            <Content>
+                {items}
+                {items.length > 1 && (
+                    <ChartFooter>
+                        <DamageItemText>total</DamageItemText>
+                        <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
+                        <DamageItemNumber>
+                            {round(totalPerSecond).toLocaleString()}
+                        </DamageItemNumber>
+                    </ChartFooter>
+                )}
+            </Content>
+        </Container>
+    );
+};
+
+const ExtraDetailChartContainer = styled.div`
+    display: grid;
+    width: 100%;
+    gap: 8px;
+    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px;
+`;
+
+const ExtraDetailDamageMeterContainer = styled.div`
+    display: flex;
+`;
+/**
+ * Styled div which can be used as a damage meter line.
+ */
+const ExtraDetailDamageMeterItem = styled.div<{
+    $width: number;
+    $background: string;
+    $color: string;
+}>`
+    background: ${(props) =>
+        `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
+    color: ${(props) => props.$color};
+    padding: 4px;
+    user-select: none;
+    cursor: pointer;
+`;
