@@ -149,7 +149,7 @@ export default class Parser {
             this.player.name = name;
 
             this.encounters.forEach(it => {
-                if (!it.entities[PLAYER_ID].name) it.entities[PLAYER_ID].name = name;
+                it.entities[PLAYER_ID].name = name
                 if (it.entities[name]) {
                     const existing = it.entities[name];
                     it.entities[PLAYER_ID].mergeFrom(existing);

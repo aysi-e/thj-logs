@@ -326,7 +326,7 @@ const TrashEncounterGroup = ({encounters} : {encounters: Encounter[]}) => (<Tras
                 enemyNames = enemies.slice(0, 3).join(', ') + `... (${enemies.length - 3} more)`
             }
 
-            return <Link to={encounter.id}>
+            return <Link to={encounter.id} key={encounter.id}>
                 <TrashEncounterListItem>
                  <ListItemTime>
                      {DateTime.fromMillis(encounter.start).toLocaleString(DateTime.TIME_SIMPLE)}
