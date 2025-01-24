@@ -282,6 +282,9 @@ const DamageItemText = styled.div`
 const DamageItemNumber = styled.div`
     font-size: 0.9em;
     text-align: center;
+    justify-content: center;
+    align-items: center;
+    display: flex;
 `;
 
 /**

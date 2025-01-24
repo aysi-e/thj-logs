@@ -2,6 +2,7 @@ import Entity, { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../p
 import { Encounter } from '../../../parser/parser';
 import { values } from 'lodash';
 import DetailChart, { DetailItem, ExtraDetailChart } from './DetailChart.tsx';
+import theme from '../../../theme.tsx';
 
 /**
  * Props accepted by encounter detail charts.
@@ -99,6 +100,8 @@ const toDamageBreakdownItems = (entity: Entity, encounter: Encounter): DetailIte
             perSecond: (it.damage.total / encounter.duration) * 1000,
             percent: (it.damage.total / damage) * 100,
             label: `DPS`,
+            background:
+                it.type === `ds` ? theme.color.error : it.type === `spell` ? `#4a5ba6` : `#7a7a7a`,
         }))
         .sort((a, b) => b.damage.total - a.damage.total) as DetailItem[];
 };

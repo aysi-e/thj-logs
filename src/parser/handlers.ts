@@ -345,9 +345,12 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
         nextLine = parser.skipAhead(1) || '';
     }
 
+    // the id for our entity scoring a critical hit.
+    const entityId = parser.nameToId(line[1]).id;
+
     // we should be able to find our melee hit...
     const otherHit = OTHER_MELEE_HIT.regex.exec(nextLine);
-    if (otherHit && otherHit[1].toLowerCase() === line[1].toLowerCase()) {
+    if (otherHit && parser.nameToId(otherHit[1]).id === entityId) {
         parser.skipAhead(1);
         parser.nextLineCritical = true;
         OTHER_MELEE_HIT.evaluate(timestamp, otherHit, parser);
@@ -358,7 +361,7 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
     const otherMiss = OTHER_MELEE_MISS.regex.exec(nextLine);
     if (
         otherMiss &&
-        otherMiss[1].toLowerCase() === line[1].toLowerCase() &&
+        parser.nameToId(otherMiss[1]).id === entityId &&
         otherMiss[4].includes('magical skin absorbs the blow')
     ) {
         return true;
@@ -368,11 +371,11 @@ const evaluateOtherMeleeCritical = (timestamp: number, line: RegExpMatchArray, p
     const lookback = parser.lookBack(timestamp);
     const kill = lookback.find((it) => {
         const od = OTHER_DEATH.regex.exec(it);
-        if (od && od[2].toLowerCase() === line[1].toLowerCase()) return true;
+        if (od && parser.nameToId(od[2]).id === entityId) return true;
 
         // an enemy could have slain something via a rampage hit.
         const rampage = new RegExp(`(.+) goes on a RAMPAGE!`).exec(it);
-        if (rampage && rampage[1].toLowerCase() === line[1].toLowerCase()) return true;
+        if (rampage && parser.nameToId(rampage[1]).id === entityId) return true;
 
         return false;
     });
