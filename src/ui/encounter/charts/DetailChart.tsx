@@ -17,6 +17,11 @@ type Props = {
      * The items to display.
      */
     items: DetailItem[];
+
+    /**
+     * The height of the chart component.
+     */
+    height?: number;
 };
 
 /**
@@ -167,6 +172,7 @@ export type DetailItem = MeleeDetailItem | DamageShieldDetailItem | SpellDetailI
 const DetailChart = (props: Props) => {
     let totalPerSecond = 0;
     let totalAmount = 0;
+    const height = props.height ?? 300;
     const items = props.items.map((it: DetailItem) => {
         totalPerSecond += it.perSecond;
         totalAmount += it.damage.total;
@@ -186,18 +192,14 @@ const DetailChart = (props: Props) => {
     return (
         <Container>
             <Header>{props.title}</Header>
-            <Content>
-                {items}
-                {items.length > 1 && (
-                    <ChartFooter>
-                        <DamageItemText>total</DamageItemText>
-                        <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
-                        <DamageItemNumber>
-                            {round(totalPerSecond).toLocaleString()}
-                        </DamageItemNumber>
-                    </ChartFooter>
-                )}
-            </Content>
+            <Content height={height}>{items}</Content>
+            {items.length > 1 && (
+                <ChartFooter>
+                    <DamageItemText>total</DamageItemText>
+                    <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
+                    <DamageItemNumber>{round(totalPerSecond).toLocaleString()}</DamageItemNumber>
+                </ChartFooter>
+            )}
         </Container>
     );
 };
@@ -211,6 +213,7 @@ const Container = styled.div`
     border: ${theme.color.secondary} 1px solid;
     width: 100%;
     height: 100%;
+    position: relative;
 `;
 
 /**
@@ -224,22 +227,50 @@ const Header = styled.div`
 /**
  * Styled content div for a detail chart.
  */
-const Content = styled.div`
+const Content = styled.div<{ height: number }>`
     border-top: ${theme.color.secondary} 1px solid;
     padding: 8px;
     background-color: ${theme.color.darkerBackground};
     display: flex;
     flex-direction: column;
     gap: 4px;
+    max-height: ${(props) => props.height - 62 - 19}px;
+    margin-bottom: 31px;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scrollbar-color: rgba(0, 0, 0, 0.5) ${theme.color.darkerBackground};
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        /* Foreground */
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    ::-webkit-scrollbar-track {
+        /* Background */
+        background: ${theme.color.darkerBackground};
+    }
 `;
 
 /**
  * Styled div for the chart footer.
  */
 const ChartFooter = styled.div`
-    padding: 4px 4px 0 4px;
+    left: 0;
+    bottom: 0;
+    width: calc(100% - 16px);
+    height: 22px;
+    position: absolute;
+    padding: 4px 8px;
     background-color: ${theme.color.darkerBackground};
     display: grid;
+    justify-content: center;
+    align-items: center;
     grid-template-columns: 72% 1fr 1fr;
     grid-gap: 8px;
     border-top: 1px solid ${theme.color.secondary};
@@ -295,6 +326,7 @@ const DamageItemNumber = styled.div`
 export const ExtraDetailChart = (props: Props) => {
     let totalPerSecond = 0;
     let totalAmount = 0;
+    const height = props.height ?? 300;
     const rescale = props.items[0].percent;
     const items = props.items.map((it: DetailItem) => {
         totalPerSecond += it.perSecond;
@@ -332,7 +364,7 @@ export const ExtraDetailChart = (props: Props) => {
     return (
         <Container>
             <Header>{props.title}</Header>
-            <Content>
+            <Content height={height}>
                 {items}
                 {items.length > 1 && (
                     <ChartFooter>
