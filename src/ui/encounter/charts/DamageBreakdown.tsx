@@ -3,6 +3,7 @@ import Entity, { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../p
 import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
 import { round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
+import theme from '../../../theme.tsx';
 
 /**
  * Props accepted by damage breakdown charts.
@@ -115,6 +116,8 @@ const toDamageBreakdownItems = (
             perSecond: (it.damage.total / encounter.duration) * 1000,
             percent: (it.damage.total / damage) * 100,
             label: `DPS`,
+            background:
+                it.type === `ds` ? theme.color.error : it.type === `spell` ? `#4a5ba6` : `#7a7a7a`,
         }))
         .sort((a, b) => b.damage.total - a.damage.total) as DetailItem[];
 };
