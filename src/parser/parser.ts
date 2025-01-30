@@ -186,7 +186,10 @@ export default class Parser {
         let id;
         let mappedName: string | undefined = name;
 
-        if (name === 'YOU') {
+        if (name === UNKNOWN_ID) {
+            id = UNKNOWN_ID;
+            mappedName = `Unknown`;
+        } else if (name === 'YOU') {
             id = this.player.id;
             mappedName = this.player.name;
         } else if (this.player.name && this.player.name === name) {

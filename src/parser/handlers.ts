@@ -415,7 +415,7 @@ export const OTHER_MELEE_HIT = {
  * Regex groups: timestamp, attack type (crush, punch, kick, etc.), target name, damage dealt.
  */
 export const OTHER_MELEE_MISS = {
-    regex: new RegExp(`^(.+?) tries to ${MELEE_DAMAGE_TYPE_PLURAL_GROUP} (.+), but (.+)!`),
+    regex: new RegExp(`^(.+?) tries to ${MELEE_DAMAGE_TYPE_SINGULAR_GROUP} (.+), but (.+)!`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, attackType, target, rest] = line;
         if (rest === 'misses') {

@@ -145,7 +145,7 @@ const EncounterDamageGraphContainer = styled.div`
  * A styled content div for the character detail page.
  */
 const Content = styled.div`
-    max-width: 800px;
+    max-width: 1000px;
     margin: 8px auto;
 
     color: ${theme.color.white};

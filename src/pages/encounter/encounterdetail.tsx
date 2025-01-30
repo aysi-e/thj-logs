@@ -140,7 +140,7 @@ const ColoredHeaderText = styled.span<{ $failed: boolean }>`
  * A styled content div for the encounter detail page.
  */
 const Content = styled.div`
-    max-width: 800px;
+    max-width: 1000px;
     margin: 8px auto;
 
     color: ${theme.color.white};

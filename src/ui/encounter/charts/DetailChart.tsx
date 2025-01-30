@@ -236,6 +236,7 @@ const Content = styled.div<{ height: number }>`
     gap: 4px;
     max-height: ${(props) => props.height - 62 - 19}px;
     margin-bottom: 31px;
+    margin-top: 31px;
 
     overflow-x: hidden;
     overflow-y: scroll;
@@ -331,6 +332,18 @@ export const ExtraDetailChart = (props: Props) => {
     const items = props.items.map((it: DetailItem) => {
         totalPerSecond += it.perSecond;
         totalAmount += it.damage.total;
+        const miss =
+            it.type === `melee`
+                ? it.damage.miss +
+                  it.damage.absorb +
+                  it.damage.parry +
+                  it.damage.riposte +
+                  it.damage.block +
+                  it.damage.dodge +
+                  it.damage.immune
+                : it.type === `spell`
+                  ? it.damage.resists + it.damage.absorb + it.damage.immune
+                  : 0;
         return (
             <ExtraDetailChartContainer key={`${it.label}-${it.name}`}>
                 <ExtraDetailDamageMeterItem
@@ -350,9 +363,15 @@ export const ExtraDetailChart = (props: Props) => {
                         <DamageItemNumber>
                             {round((it.damage.crits / (it.damage.hits + it.damage.crits)) * 100)}%
                         </DamageItemNumber>
+                        <DamageItemNumber>{miss}</DamageItemNumber>
+                        <DamageItemNumber>
+                            {round((miss / (it.damage.crits + it.damage.hits + miss)) * 100)}%
+                        </DamageItemNumber>
                     </>
                 ) : (
                     <>
+                        <DamageItemNumber />
+                        <DamageItemNumber />
                         <DamageItemNumber />
                         <DamageItemNumber />
                     </>
@@ -365,6 +384,17 @@ export const ExtraDetailChart = (props: Props) => {
         <Container>
             <Header>{props.title}</Header>
             <Content height={height}>
+                <ChartHeader>
+                    <DamageItemText>source</DamageItemText>
+                    <DamageItemText>%</DamageItemText>
+                    <DamageItemText>total</DamageItemText>
+                    <DamageItemText>dps</DamageItemText>
+                    <DamageItemText>hits</DamageItemText>
+                    <DamageItemText>crits</DamageItemText>
+                    <DamageItemText>crit %</DamageItemText>
+                    <DamageItemText>miss</DamageItemText>
+                    <DamageItemText>miss %</DamageItemText>
+                </ChartHeader>
                 {items}
                 {items.length > 1 && (
                     <ChartFooter>
@@ -384,12 +414,27 @@ const ExtraDetailChartContainer = styled.div`
     display: grid;
     width: 100%;
     gap: 8px;
-    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px;
+    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px 50px 50px;
 `;
 
-const ExtraDetailDamageMeterContainer = styled.div`
-    display: flex;
+const ChartHeader = styled.div`
+    top: 31px;
+    left: 0;
+    right: 0;
+    height: 22px;
+    position: absolute;
+    padding: 4px 0 4px 16px;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px 50px 50px 16px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-bottom: 1px solid ${theme.color.secondary};
+    border-top: 1px solid ${theme.color.secondary};
+    background: ${theme.color.darkerBackground};
 `;
+
 /**
  * Styled div which can be used as a damage meter line.
  */
