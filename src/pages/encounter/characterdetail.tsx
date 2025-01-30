@@ -4,15 +4,15 @@ import theme from '../../theme.tsx';
 import { Encounter } from '../../parser/parser.ts';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
-import OutgoingDamageBreakdownChart, {
-    DetailedOutgoingDamageBreakdownChart,
-} from '../../ui/encounter/charts/OutgoingDamageBreakdown.tsx';
-import IncomingDamageBreakdownChart from '../../ui/encounter/charts/IncomingDamageBreakdown.tsx';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
 import { toDPSData } from '../../parser/timeline.ts';
 import Entity from '../../parser/entity.ts';
 import { shortenNumber } from '../../util/numbers.ts';
+import {
+    DetailedIncomingDamageBreakdownChart,
+    DetailedOutgoingDamageBreakdownChart,
+} from '../../ui/encounter/charts/DamageBreakdown.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -38,7 +38,7 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
                 <CharacterDamageTimeline entity={entity} encounter={encounter} />
                 <BreakdownContainer>
                     <DetailedOutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
-                    <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+                    <DetailedIncomingDamageBreakdownChart encounter={encounter} entity={entity} />
                 </BreakdownContainer>
             </Content>
         </Container>

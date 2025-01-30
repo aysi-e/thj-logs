@@ -442,6 +442,38 @@ export class MeleeDamage {
             }
         }
     }
+
+    /**
+     * Return the number of damage 'attempts' made by this melee damage source.
+     */
+    attempts() {
+        return (
+            this.hits +
+            this.crits +
+            this.miss +
+            this.parry +
+            this.riposte +
+            this.absorb +
+            this.block +
+            this.dodge +
+            this.immune
+        );
+    }
+
+    /**
+     * Return the number of damage 'attempts' made by this melee damage source that were avoided.
+     */
+    avoided() {
+        return (
+            this.miss +
+            this.parry +
+            this.riposte +
+            this.absorb +
+            this.block +
+            this.dodge +
+            this.immune
+        );
+    }
 }
 
 /**
@@ -530,6 +562,20 @@ export class SpellDamage {
             }
         }
     }
+
+    /**
+     * Return the number of damage 'attempts' made by this spell damage source.
+     */
+    attempts() {
+        return this.hits + this.crits + this.absorb + this.resists + this.immune;
+    }
+
+    /**
+     * Return the number of damage 'attempts' made by this spell damage source that were avoided.
+     */
+    avoided() {
+        return this.resists + this.absorb + this.immune;
+    }
 }
 
 /**
@@ -565,5 +611,19 @@ export class DamageShieldDamage {
     addFrom(other: DamageShieldDamage) {
         this.hits += other.hits;
         this.total += other.total;
+    }
+
+    /**
+     * Return the number of damage 'attempts' made by this damage shield damage source.
+     */
+    attempts() {
+        return this.hits;
+    }
+
+    /**
+     * Return the number of damage 'attempts' made by this damage shield damage source that were avoided.
+     */
+    avoided() {
+        return 0;
     }
 }

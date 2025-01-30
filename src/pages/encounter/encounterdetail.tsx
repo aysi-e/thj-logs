@@ -287,7 +287,7 @@ const WarningTooltip = styled(BasicTooltip)`
 `;
 
 /**
- * A header component for the the encounter warnings.
+ * A header component for the encounter warnings.
  */
 const WarningHeader = styled.div`
     padding: 4px;
