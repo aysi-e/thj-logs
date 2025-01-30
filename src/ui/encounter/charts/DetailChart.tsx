@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import theme from '../../../theme.tsx';
-import { round } from 'lodash';
+import { round, sortBy } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
 import { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity.ts';
 
@@ -19,9 +19,61 @@ type Props = {
     items: DetailItem[];
 
     /**
+     * The columns to show.
+     */
+    columns?: DetailColumn[];
+
+    /**
      * The height of the chart component.
      */
     height?: number;
+
+    /**
+     * Should we show a header with column names?
+     */
+    header?: boolean;
+
+    /**
+     * Should we show a footer with total values?
+     */
+    footer?: boolean;
+};
+
+/**
+ * Type representing a column to include in a detail chart.
+ */
+export type DetailColumn = {
+    /**
+     * The title of this column, shown in the header.
+     */
+    title: string;
+
+    /**
+     * The value function for this column.
+     *
+     * @param item the item to determine the value of
+     */
+    value: (item: DetailItem) => number | undefined;
+
+    /**
+     * A formatting function for this column.
+     *
+     * @param value the value to format
+     */
+    format?: (value: number) => string;
+
+    /**
+     * The 'total' value to use for this column.
+     *
+     * If a string is provided, the string will be used as the total. If the boolean is provided
+     * (and true), we will calculate the total based on the column values.
+     */
+    total?: string | boolean;
+
+    /**
+     * The width to use for this column.
+     */
+    width?: number;
 };
 
 /**
@@ -170,36 +222,82 @@ export type DetailItem = MeleeDetailItem | DamageShieldDetailItem | SpellDetailI
  * @constructor
  */
 const DetailChart = (props: Props) => {
-    let totalPerSecond = 0;
-    let totalAmount = 0;
+    const i = sortBy(props.items, (it) => it.damage.total * -1);
+    const columns = props.columns ?? [];
+    const grid: string[] = [`1fr`];
+    const headers: string[] = [];
+    columns.forEach((column, i) => {
+        headers.push(column.title);
+        grid.push(`${column.width ?? 50}px`);
+    });
+    const totals: Record<string, number> = {};
+    const contentGrid = grid.join(` `);
+
     const height = props.height ?? 300;
-    const items = props.items.map((it: DetailItem) => {
-        totalPerSecond += it.perSecond;
-        totalAmount += it.damage.total;
+    const rescale = i[0].percent;
+
+    const items = i.map((it: DetailItem) => {
         return (
-            <DamageItemContainer
-                key={`${it.label}-${it.name}`}
-                $color={it.color || `white`}
-                $background={it.background || theme.color.secondary}
-                $width={it.percent}
-            >
-                <DamageItemText>{it.name}</DamageItemText>
-                <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
-                <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
-            </DamageItemContainer>
+            <ChartContainer key={`${it.label}-${it.name}`} $grid={contentGrid}>
+                <DamageMeterItem
+                    $color={it.color || `white`}
+                    $background={it.background || theme.color.secondary}
+                    $width={(it.percent / rescale) * 100}
+                >
+                    <DamageItemText>{it.name}</DamageItemText>
+                </DamageMeterItem>
+                {columns.map(
+                    ({ title, value, format = (v) => v.toString(), total }: DetailColumn) => {
+                        const val = value(it);
+                        if (!val) return <DamageItemNumber />;
+                        if (total === true) {
+                            if (!totals[title]) totals[title] = 0;
+                            totals[title] += val;
+                        }
+                        return <DamageItemNumber>{format(val)}</DamageItemNumber>;
+                    },
+                )}
+            </ChartContainer>
         );
     });
+
     return (
         <Container>
             <Header>{props.title}</Header>
-            <Content height={height}>{items}</Content>
-            {items.length > 1 && (
-                <ChartFooter>
-                    <DamageItemText>total</DamageItemText>
-                    <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
-                    <DamageItemNumber>{round(totalPerSecond).toLocaleString()}</DamageItemNumber>
-                </ChartFooter>
-            )}
+            <Content height={height} $isHeader={!!props.header} $isFooter={!!props.footer}>
+                {props.header && (
+                    <ChartHeader $grid={contentGrid}>
+                        <DamageItemText>source</DamageItemText>
+                        {headers.map((column) => (
+                            <DamageItemText key={`header-${column}`}>{column}</DamageItemText>
+                        ))}
+                    </ChartHeader>
+                )}
+                {items}
+                {props.footer && (
+                    <ChartFooter $grid={contentGrid}>
+                        <DamageItemText></DamageItemText>
+                        {columns.map((it) => {
+                            if (!it.total) return <DamageItemNumber key={`footer-${it.title}`} />;
+                            if (it.total === true) {
+                                const val = totals[it.title] ?? 0;
+                                const formatted = it.format ? it.format(val) : val.toString();
+                                return (
+                                    <DamageItemNumber key={`footer-${it.title}`}>
+                                        {formatted}
+                                    </DamageItemNumber>
+                                );
+                            } else {
+                                return (
+                                    <DamageItemNumber key={`footer-${it.title}`}>
+                                        {it.total}
+                                    </DamageItemNumber>
+                                );
+                            }
+                        })}
+                    </ChartFooter>
+                )}
+            </Content>
         </Container>
     );
 };
@@ -227,16 +325,17 @@ const Header = styled.div`
 /**
  * Styled content div for a detail chart.
  */
-const Content = styled.div<{ height: number }>`
+const Content = styled.div<{ height: number; $isHeader: boolean; $isFooter: boolean }>`
     border-top: ${theme.color.secondary} 1px solid;
     padding: 8px;
     background-color: ${theme.color.darkerBackground};
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: ${(props) => props.height - 62 - 19}px;
-    margin-bottom: 31px;
-    margin-top: 31px;
+    max-height: ${(props) =>
+        props.height - (props.$isFooter ? 31 : 0) - (props.$isHeader ? 31 : 0) - 19}px;
+    margin-bottom: ${(props) => (props.$isFooter ? `31px` : 0)};
+    margin-top: ${(props) => (props.$isHeader ? `31px` : 0)};
 
     overflow-x: hidden;
     overflow-y: scroll;
@@ -259,46 +358,13 @@ const Content = styled.div<{ height: number }>`
 `;
 
 /**
- * Styled div for the chart footer.
+ * Container div for the detail chart items.
  */
-const ChartFooter = styled.div`
-    left: 0;
-    bottom: 0;
-    width: calc(100% - 16px);
-    height: 22px;
-    position: absolute;
-    padding: 4px 8px;
-    background-color: ${theme.color.darkerBackground};
+const ChartContainer = styled.div<{ $grid: string }>`
     display: grid;
-    justify-content: center;
-    align-items: center;
-    grid-template-columns: 72% 1fr 1fr;
-    grid-gap: 8px;
-    border-top: 1px solid ${theme.color.secondary};
-`;
-
-/**
- * Styled div which can be used as a damage meter line.
- */
-const DamageItemContainer = styled.div<{ $width: number; $background: string; $color: string }>`
-    background: ${(props) =>
-        `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
-    color: ${(props) => props.$color};
-    padding: 4px;
-    user-select: none;
-    cursor: pointer;
-
-    display: grid;
-    grid-template-columns: 72% 1fr 1fr;
-    grid-gap: 8px;
-
-    &:hover {
-        filter: brightness(1.25);
-    }
-
-    &:active {
-        filter: brightness(0.65);
-    }
+    width: 100%;
+    gap: 8px;
+    grid-template-columns: ${(props) => props.$grid};
 `;
 
 /**
@@ -320,125 +386,9 @@ const DamageItemNumber = styled.div`
 `;
 
 /**
- * Component which displays a detailed damage breakdown chart for the Character page.
- * @param props
- * @constructor
- */
-export const ExtraDetailChart = (props: Props) => {
-    let totalPerSecond = 0;
-    let totalAmount = 0;
-    const height = props.height ?? 300;
-    const rescale = props.items[0].percent;
-    const items = props.items.map((it: DetailItem) => {
-        totalPerSecond += it.perSecond;
-        totalAmount += it.damage.total;
-        const miss =
-            it.type === `melee`
-                ? it.damage.miss +
-                  it.damage.absorb +
-                  it.damage.parry +
-                  it.damage.riposte +
-                  it.damage.block +
-                  it.damage.dodge +
-                  it.damage.immune
-                : it.type === `spell`
-                  ? it.damage.resists + it.damage.absorb + it.damage.immune
-                  : 0;
-        return (
-            <ExtraDetailChartContainer key={`${it.label}-${it.name}`}>
-                <ExtraDetailDamageMeterItem
-                    $color={it.color || `white`}
-                    $background={it.background || theme.color.secondary}
-                    $width={(it.percent / rescale) * 100}
-                >
-                    <DamageItemText>{it.name}</DamageItemText>
-                </ExtraDetailDamageMeterItem>
-                <DamageItemNumber>{round(it.percent, 1)}%</DamageItemNumber>
-                <DamageItemNumber>{shortenNumber(it.damage.total)}</DamageItemNumber>
-                <DamageItemNumber>{round(it.perSecond).toLocaleString()}</DamageItemNumber>
-                <DamageItemNumber>{it.damage.hits}</DamageItemNumber>
-                {it.type === 'melee' || it.type === 'spell' ? (
-                    <>
-                        <DamageItemNumber>{it.damage.crits}</DamageItemNumber>
-                        <DamageItemNumber>
-                            {round((it.damage.crits / (it.damage.hits + it.damage.crits)) * 100)}%
-                        </DamageItemNumber>
-                        <DamageItemNumber>{miss}</DamageItemNumber>
-                        <DamageItemNumber>
-                            {round((miss / (it.damage.crits + it.damage.hits + miss)) * 100)}%
-                        </DamageItemNumber>
-                    </>
-                ) : (
-                    <>
-                        <DamageItemNumber />
-                        <DamageItemNumber />
-                        <DamageItemNumber />
-                        <DamageItemNumber />
-                    </>
-                )}
-            </ExtraDetailChartContainer>
-        );
-    });
-
-    return (
-        <Container>
-            <Header>{props.title}</Header>
-            <Content height={height}>
-                <ChartHeader>
-                    <DamageItemText>source</DamageItemText>
-                    <DamageItemText>%</DamageItemText>
-                    <DamageItemText>total</DamageItemText>
-                    <DamageItemText>dps</DamageItemText>
-                    <DamageItemText>hits</DamageItemText>
-                    <DamageItemText>crits</DamageItemText>
-                    <DamageItemText>crit %</DamageItemText>
-                    <DamageItemText>miss</DamageItemText>
-                    <DamageItemText>miss %</DamageItemText>
-                </ChartHeader>
-                {items}
-                {items.length > 1 && (
-                    <ChartFooter>
-                        <DamageItemText>total</DamageItemText>
-                        <DamageItemNumber>{shortenNumber(totalAmount)}</DamageItemNumber>
-                        <DamageItemNumber>
-                            {round(totalPerSecond).toLocaleString()}
-                        </DamageItemNumber>
-                    </ChartFooter>
-                )}
-            </Content>
-        </Container>
-    );
-};
-
-const ExtraDetailChartContainer = styled.div`
-    display: grid;
-    width: 100%;
-    gap: 8px;
-    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px 50px 50px;
-`;
-
-const ChartHeader = styled.div`
-    top: 31px;
-    left: 0;
-    right: 0;
-    height: 22px;
-    position: absolute;
-    padding: 4px 0 4px 16px;
-    display: grid;
-    gap: 8px;
-    grid-template-columns: 1fr 50px 50px 50px 50px 50px 50px 50px 50px 16px;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-bottom: 1px solid ${theme.color.secondary};
-    border-top: 1px solid ${theme.color.secondary};
-    background: ${theme.color.darkerBackground};
-`;
-
-/**
  * Styled div which can be used as a damage meter line.
  */
-const ExtraDetailDamageMeterItem = styled.div<{
+const DamageMeterItem = styled.div<{
     $width: number;
     $background: string;
     $color: string;
@@ -449,4 +399,42 @@ const ExtraDetailDamageMeterItem = styled.div<{
     padding: 4px;
     user-select: none;
     cursor: pointer;
+`;
+
+/**
+ * Styled header div for the detail chart.
+ */
+const ChartHeader = styled.div<{ $grid: string }>`
+    top: 31px;
+    left: 0;
+    right: 0;
+    height: 22px;
+    position: absolute;
+    padding: 4px 0 4px 16px;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: ${(props) => props.$grid} 16px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-bottom: 1px solid ${theme.color.secondary};
+    border-top: 1px solid ${theme.color.secondary};
+    background: ${theme.color.darkerBackground};
+`;
+
+/**
+ * Styled div for the extra detail chart footer.
+ */
+const ChartFooter = styled.div<{ $grid: string }>`
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22px;
+    position: absolute;
+    padding: 4px 0 4px 16px;
+    background-color: ${theme.color.darkerBackground};
+    display: grid;
+    grid-template-columns: ${(props) => props.$grid} 16px;
+    grid-gap: 8px;
+    border-top: 1px solid ${theme.color.secondary};
 `;

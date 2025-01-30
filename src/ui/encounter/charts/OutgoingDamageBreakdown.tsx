@@ -1,8 +1,9 @@
 import Entity, { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity';
 import { Encounter } from '../../../parser/parser';
-import { values } from 'lodash';
-import DetailChart, { DetailItem, ExtraDetailChart } from './DetailChart.tsx';
+import { round, values } from 'lodash';
+import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
 import theme from '../../../theme.tsx';
+import { shortenNumber } from '../../../util/numbers.ts';
 
 /**
  * Props accepted by encounter detail charts.
@@ -107,13 +108,118 @@ const toDamageBreakdownItems = (entity: Entity, encounter: Encounter): DetailIte
 };
 
 /**
+ * A basic set of columns for an outgoing damage table.
+ */
+const OUTGOING_DAMAGE_BASIC_COLUMNS: DetailColumn[] = [
+    {
+        title: `%`,
+        value: (item) => item.percent,
+        format: (value: number) => `${round(value, 1)}%`,
+        total: '100%',
+    },
+    {
+        title: `total`,
+        value: (item) => item.damage.total,
+        format: (value: number) => shortenNumber(value),
+        total: true,
+    },
+    {
+        title: `dps`,
+        value: (item) => item.perSecond,
+        format: (value: number) => round(value).toLocaleString(),
+        total: true,
+    },
+];
+
+/**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
 const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
     const title = `damage dealt by ${entity.name}`;
     const items = toDamageBreakdownItems(entity, encounter);
-    return <DetailChart title={title} items={items} />;
+    return (
+        <DetailChart
+            title={title}
+            items={items}
+            columns={OUTGOING_DAMAGE_BASIC_COLUMNS}
+            header
+            footer
+        />
+    );
 };
+
+/**
+ * Detail columns used for outgoing damage tables.
+ */
+const OUTGOING_DAMAGE_DETAIL_COLUMNS: DetailColumn[] = [
+    {
+        title: `%`,
+        value: (item) => item.percent,
+        format: (value: number) => `${round(value, 1)}%`,
+        total: '100%',
+    },
+    {
+        title: `total`,
+        value: (item) => item.damage.total,
+        format: (value: number) => shortenNumber(value),
+        total: true,
+    },
+    {
+        title: `dps`,
+        value: (item) => item.perSecond,
+        format: (value: number) => round(value).toLocaleString(),
+        total: true,
+    },
+    {
+        title: `hits`,
+        value: (item) => item.damage.hits,
+    },
+    {
+        title: `crits`,
+        value: (item) => (item.type !== `ds` ? item.damage.crits : undefined),
+    },
+    {
+        title: `crit %`,
+        value: (item) =>
+            item.type !== `ds`
+                ? item.damage.crits / (item.damage.hits + item.damage.crits)
+                : undefined,
+        format: (value: number) => `${round(value * 100)}%`,
+    },
+    {
+        title: `miss`,
+        value: (item) => {
+            if (item.type === `ds`) return undefined;
+            return item.type === `melee`
+                ? item.damage.miss +
+                      item.damage.absorb +
+                      item.damage.parry +
+                      item.damage.riposte +
+                      item.damage.block +
+                      item.damage.dodge +
+                      item.damage.immune
+                : item.damage.resists + item.damage.absorb + item.damage.immune;
+        },
+    },
+    {
+        title: `miss %`,
+        value: (item) => {
+            if (item.type === `ds`) return undefined;
+            const miss =
+                item.type === `melee`
+                    ? item.damage.miss +
+                      item.damage.absorb +
+                      item.damage.parry +
+                      item.damage.riposte +
+                      item.damage.block +
+                      item.damage.dodge +
+                      item.damage.immune
+                    : item.damage.resists + item.damage.absorb + item.damage.immune;
+            return miss / (item.damage.crits + item.damage.hits + miss);
+        },
+        format: (value: number) => `${round(value * 100)}%`,
+    },
+];
 
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
@@ -121,7 +227,15 @@ const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
 export const DetailedOutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
     const title = `damage dealt by ${entity.name}`;
     const items = toDamageBreakdownItems(entity, encounter);
-    return <ExtraDetailChart title={title} items={items} />;
+    return (
+        <DetailChart
+            header
+            footer
+            title={title}
+            items={items}
+            columns={OUTGOING_DAMAGE_DETAIL_COLUMNS}
+        />
+    );
 };
 
 export default OutgoingDamageBreakdownChart;

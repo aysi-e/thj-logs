@@ -1,7 +1,8 @@
 import Entity, { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity';
 import { Encounter } from '../../../parser/parser';
-import { values } from 'lodash';
-import DetailChart, { DetailItem } from './DetailChart.tsx';
+import { round, values } from 'lodash';
+import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
+import { shortenNumber } from '../../../util/numbers.ts';
 
 /**
  * Props accepted by encounter detail charts.
@@ -104,12 +105,56 @@ const toDamageBreakdownItems = (entity: Entity, encounter: Encounter): DetailIte
 };
 
 /**
+ * A basic set of columns for an incoming damage table.
+ */
+const INCOMING_DAMAGE_BASIC_COLUMNS: DetailColumn[] = [
+    {
+        title: `total`,
+        value: (item) => item.damage.total,
+        format: (value: number) => shortenNumber(value),
+        total: true,
+    },
+    {
+        title: `dps`,
+        value: (item) => item.perSecond,
+        format: (value: number) => round(value).toLocaleString(),
+        total: true,
+    },
+    {
+        title: `avoid %`,
+        value: (item) => {
+            if (item.type === `ds`) return undefined;
+            const miss =
+                item.type === `melee`
+                    ? item.damage.miss +
+                      item.damage.absorb +
+                      item.damage.parry +
+                      item.damage.riposte +
+                      item.damage.block +
+                      item.damage.dodge +
+                      item.damage.immune
+                    : item.damage.resists + item.damage.absorb + item.damage.immune;
+            return miss / (item.damage.crits + item.damage.hits + miss);
+        },
+        format: (value: number) => `${round(value * 100)}%`,
+    },
+];
+
+/**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
 const IncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
     const title = `damage taken by ${entity.name}`;
     const items = toDamageBreakdownItems(entity, encounter);
-    return <DetailChart title={title} items={items} />;
+    return (
+        <DetailChart
+            title={title}
+            items={items}
+            columns={INCOMING_DAMAGE_BASIC_COLUMNS}
+            header
+            footer
+        />
+    );
 };
 
 export default IncomingDamageBreakdownChart;
