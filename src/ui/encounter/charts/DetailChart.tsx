@@ -222,6 +222,7 @@ export type DetailItem = MeleeDetailItem | DamageShieldDetailItem | SpellDetailI
  * @constructor
  */
 const DetailChart = (props: Props) => {
+    if (!props.items.length) return <></>;
     const i = sortBy(props.items, (it) => it.damage.total * -1);
     const columns = props.columns ?? [];
     const grid: string[] = [`1fr`];
@@ -249,12 +250,17 @@ const DetailChart = (props: Props) => {
                 {columns.map(
                     ({ title, value, format = (v) => v.toString(), total }: DetailColumn) => {
                         const val = value(it);
-                        if (!val) return <DamageItemNumber />;
+                        if (!val)
+                            return <DamageItemNumber key={`${it.label}-${it.name}-${title}`} />;
                         if (total === true) {
                             if (!totals[title]) totals[title] = 0;
                             totals[title] += val;
                         }
-                        return <DamageItemNumber>{format(val)}</DamageItemNumber>;
+                        return (
+                            <DamageItemNumber key={`${it.label}-${it.name}-${title}`}>
+                                {format(val)}
+                            </DamageItemNumber>
+                        );
                     },
                 )}
             </ChartContainer>
