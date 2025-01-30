@@ -30,7 +30,7 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLM
 /**
  * An id to use for the logging player.
  */
-export const PLAYER_ID = `#YOU`;
+export const PLAYER_ID = `#you`;
 
 /**
  * An id to use for unknown entities.
@@ -181,12 +181,15 @@ export default class Parser {
      *
      * @param name the entity name
      */
-    private nameToId(name: string) {
+    nameToId(name: string) {
         // map player names to the correct player id and name.
-        let id = name;
+        let id;
         let mappedName: string | undefined = name;
 
-        if (name === 'YOU') {
+        if (name === UNKNOWN_ID) {
+            id = UNKNOWN_ID;
+            mappedName = `Unknown`;
+        } else if (name === 'YOU') {
             id = this.player.id;
             mappedName = this.player.name;
         } else if (this.player.name && this.player.name === name) {
@@ -208,7 +211,7 @@ export default class Parser {
         }
 
         return {
-            id,
+            id: (id || name).toLowerCase().replace(new RegExp(`[-\\s]`, `g`), () => ``),
             name: mappedName,
         };
     }
@@ -402,6 +405,9 @@ export default class Parser {
                 // we can advance and return the line.
                 this.index += i;
                 return line;
+            } else {
+                this.index += i;
+                return undefined;
             }
         }
 
@@ -816,6 +822,15 @@ export class Encounter {
             this.entities[id].name = name;
         } else if (!this.entities[id].name) {
             this.entities[id].name = name;
+        } else {
+            // regex containing special characters that can get messed up in logs.
+            const special = new RegExp(`-`);
+
+            // if we have an entity without a special character, but receive it with a special
+            // character, the one with a special character is correct.
+            if (name && special.test(name) && !special.test(this.entities[id].name!)) {
+                this.entities[id].name = name;
+            }
         }
 
         if (name && this.entities[id].isBoss === undefined && has(BOSSES_BY_NAME, name)) {

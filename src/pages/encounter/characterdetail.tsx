@@ -4,13 +4,15 @@ import theme from '../../theme.tsx';
 import { Encounter } from '../../parser/parser.ts';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
-import OutgoingDamageBreakdownChart from '../../ui/encounter/charts/OutgoingDamageBreakdown.tsx';
-import IncomingDamageBreakdownChart from '../../ui/encounter/charts/IncomingDamageBreakdown.tsx';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
 import { toDPSData } from '../../parser/timeline.ts';
 import Entity from '../../parser/entity.ts';
 import { shortenNumber } from '../../util/numbers.ts';
+import {
+    DetailedIncomingDamageBreakdownChart,
+    DetailedOutgoingDamageBreakdownChart,
+} from '../../ui/encounter/charts/DamageBreakdown.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -35,8 +37,8 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
             <Content>
                 <CharacterDamageTimeline entity={entity} encounter={encounter} />
                 <BreakdownContainer>
-                    <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
-                    <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+                    <DetailedOutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+                    <DetailedIncomingDamageBreakdownChart encounter={encounter} entity={entity} />
                 </BreakdownContainer>
             </Content>
         </Container>
@@ -143,7 +145,7 @@ const EncounterDamageGraphContainer = styled.div`
  * A styled content div for the character detail page.
  */
 const Content = styled.div`
-    max-width: 800px;
+    max-width: 1000px;
     margin: 8px auto;
 
     color: ${theme.color.white};
@@ -156,6 +158,6 @@ const Content = styled.div`
 const BreakdownContainer = styled.div`
     margin-top: 8px;
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
     gap: 8px;
 `;

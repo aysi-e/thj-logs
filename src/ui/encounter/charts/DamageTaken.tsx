@@ -3,7 +3,7 @@ import { Encounter } from '../../../parser/parser';
 import { values } from 'lodash';
 import EncounterChart, { ChartItem } from './EncounterChart.tsx';
 import { keys } from 'mobx';
-import IncomingDamageBreakdownChart from './IncomingDamageBreakdown.tsx';
+import { IncomingDamageBreakdownChart } from './DamageBreakdown.tsx';
 
 /**
  * Props accepted by encounter detail charts.
