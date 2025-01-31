@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
 import { Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import styled from 'styled-components';
@@ -7,14 +7,16 @@ import theme from '../../theme.tsx';
 import { map, partition, size, values } from 'lodash';
 import { DateTime, Duration } from 'luxon';
 import { Encounter } from '../../parser/parser.ts';
-import DamageDoneChart from '../../ui/encounter/charts/DamageDone.tsx';
-import DamageTakenChart from '../../ui/encounter/charts/DamageTaken.tsx';
 import CharacterDetailPage from './characterdetail.tsx';
 import { toDPSData } from '../../parser/timeline.ts';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { shortenNumber } from '../../util/numbers.ts';
 import { UI_WARNING, UIIcon } from '../../ui/Icon.tsx';
 import Tooltip, { BasicTooltip } from '../../ui/Tooltip.tsx';
+import {
+    DamageDealtChart,
+    DamageTakenChart,
+} from '../../ui/encounter/charts/DamageByCharacter.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -208,11 +210,11 @@ const EncounterSummary = ({ encounter }: { encounter: Encounter }) => {
     return (
         <>
             <EncounterSummaryContainer>
-                <DamageDoneChart encounter={encounter} entities={friends} />
+                <DamageDealtChart encounter={encounter} entities={friends} />
                 <DamageTakenChart encounter={encounter} entities={friends} />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
-                <DamageDoneChart encounter={encounter} entities={enemies} />
+                <DamageDealtChart encounter={encounter} entities={enemies} />
                 <DamageTakenChart encounter={encounter} entities={enemies} />
             </EncounterSummaryContainer>
         </>
