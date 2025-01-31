@@ -286,46 +286,59 @@ export default class Parser {
         if (!this.end || time > this.end) this.end = time;
 
         // if we don't have an encounter, make one.
-        if (this.encounters.length === 0)
-            this.encounters.push(new Encounter(this.player, this.encounters.length.toString()));
+        if (this.encounters.length === 0) {
+            const first = new Encounter(this.player, this.encounters.length.toString());
+            first.zone = this.zone;
+            this.encounters.push(first);
+        }
 
         // update the encounter timestamps, and start a new encounter if enough time has elapsed since the previous
         // encounter.
         const encounter = last(this.encounters)!;
+        if (forceEnd) {
+            encounter.reset();
+            encounter.zone = this.zone;
+            return;
+        }
         if (!encounter.start) encounter.start = time;
         if (!encounter.end) {
             encounter.end = time;
             encounter.duration = encounter.end - encounter.start;
-        } else if (encounter.end < time) {
-            // initial dumb encounter splitting logic: has 10 seconds elapsed since our last encounter event?
-            if (forceEnd || time - encounter.end > 10 * 1000) {
-                if (encounter.duration <= 0) {
-                    // don't keep zero-duration encounters.
-                    encounter.reset();
-                    encounter.zone = this.zone;
-                } else if (!values(encounter.entities).find((it) => it.isEnemy)) {
-                    // don't keep encounters where we don't have enemies.
-                    encounter.reset();
-                    encounter.zone = this.zone;
-                } else if (
-                    !values(encounter.entities).find((it) => it.isBoss || it.deaths.length)
-                ) {
-                    // don't keep non-boss encounters where nobody dies
-                    encounter.reset();
-                    encounter.zone = this.zone;
-                } else {
-                    encounter.isOver = true;
-                    const next = new Encounter(this.player, this.encounters.length.toString());
-                    next.zone = this.zone;
-                    next.start = time;
-                    this.encounters.push(next);
-                    return encounter;
-                }
-            } else {
-                encounter.end = time;
-                encounter.duration = encounter.end - encounter.start;
-            }
+            return;
         }
+
+        // initial dumb encounter splitting logic: has 10 seconds elapsed since our last encounter event?
+        if (time - encounter.end > 10 * 1000) {
+            // we should split our encounter. is it worth keeping?
+
+            const shouldDiscard =
+                // don't keep zero-duration encounters.
+                encounter.duration <= 0 ||
+                // don't keep encounters where we don't have enemies.
+                !values(encounter.entities).find((it) => it.isEnemy) ||
+                // don't keep non-boss encounters where nobody dies
+                !values(encounter.entities).find((it) => it.isBoss || it.deaths.length);
+
+            // if any of the 'discard' conditions are true, discard our current encounter by
+            // resetting it to empty.
+            if (shouldDiscard) {
+                encounter.reset();
+                encounter.zone = this.zone;
+                return;
+            }
+
+            // otherwise, finalize our encounter and create a new active encounter.
+            encounter.isOver = true;
+            const next = new Encounter(this.player, this.encounters.length.toString());
+            next.zone = this.zone;
+            next.start = time;
+            this.encounters.push(next);
+            return encounter;
+        }
+
+        // our encounter is still ongoing.
+        encounter.end = time;
+        encounter.duration = encounter.end - encounter.start;
     }
 
     /**
