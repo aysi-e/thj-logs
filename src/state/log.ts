@@ -53,7 +53,10 @@ export class Log {
      * @param file the file to parse
      */
     parseFile(file: File) {
-        runInAction(() => (this.encounters = []));
+        runInAction(() => {
+            this.encounters = [];
+            this.progress = 0;
+        });
 
         const worker = new Worker(new URL('../parser/worker.ts', import.meta.url), {
             type: 'module',
