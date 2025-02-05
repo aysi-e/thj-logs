@@ -85,6 +85,7 @@ export default class Entity {
         entity.owner = this.owner;
         entity.isEnemy = this.isEnemy;
         entity.isBoss = this.isBoss;
+        entity.isDead = false;
         return entity;
     }
 }

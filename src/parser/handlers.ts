@@ -1,4 +1,4 @@
-import Parser, { UNKNOWN_ID } from './parser.ts';
+import Parser, { Encounter, UNKNOWN_ID } from './parser.ts';
 
 export type Handler = {
     /**
@@ -13,7 +13,7 @@ export type Handler = {
      * @param line the matching line
      * @param parser the parser object.
      */
-    evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => any;
+    evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => Encounter | void;
 };
 
 /**
@@ -434,7 +434,7 @@ export const OTHER_MELEE_MISS = {
                 target,
                 'absorbs',
             );
-        } else if (rest.includes('are INVULNERABLE')) {
+        } else if (rest.includes('INVULNERABLE')) {
             parser.addOtherMeleeMiss(
                 timestamp,
                 source,
@@ -607,7 +607,9 @@ export const ZONE_CHANGE = {
     regex: new RegExp(`^You have entered (.+)\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, zone] = line;
-        if (zone !== `an Arena (PvP) area`) parser.changeZone(timestamp, zone);
+        if (zone !== `an Arena (PvP) area`) {
+            return parser.changeZone(timestamp, zone);
+        }
     },
 };
 
@@ -618,7 +620,7 @@ export const PLAYER_DEATH = {
     regex: new RegExp(`^You have been slain by (.+)!$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, killer] = line;
-        parser.addPlayerDeath(timestamp, killer);
+        return parser.addPlayerDeath(timestamp, killer);
     },
 };
 

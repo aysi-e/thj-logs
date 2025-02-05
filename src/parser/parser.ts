@@ -258,8 +258,10 @@ export default class Parser {
                         // if we get a result from 'manageEncounterTime', we've ended our encounter. return it.
                         if (result) return result;
 
-                        // otherwise, keep parsing
-                        handler.evaluate(time.toMillis(), params, this);
+                        // otherwise, keep parsing.
+                        // it's possible that our handler has resulted in an encounter ending. if so, return it.
+                        const ended = handler.evaluate(time.toMillis(), params, this);
+                        if (ended) return ended;
                     }
                 }
             }
@@ -295,33 +297,18 @@ export default class Parser {
         // update the encounter timestamps, and start a new encounter if enough time has elapsed since the previous
         // encounter.
         const encounter = last(this.encounters)!;
-        if (forceEnd) {
-            encounter.reset();
-            encounter.zone = this.zone;
-            return;
-        }
         if (!encounter.start) encounter.start = time;
         if (!encounter.end) {
             encounter.end = time;
             encounter.duration = encounter.end - encounter.start;
-            return;
         }
 
         // initial dumb encounter splitting logic: has 10 seconds elapsed since our last encounter event?
-        if (time - encounter.end > 10 * 1000) {
+        if (forceEnd || time - encounter.end > 10 * 1000) {
             // we should split our encounter. is it worth keeping?
-
-            const shouldDiscard =
-                // don't keep zero-duration encounters.
-                encounter.duration <= 0 ||
-                // don't keep encounters where we don't have enemies.
-                !values(encounter.entities).find((it) => it.isEnemy) ||
-                // don't keep non-boss encounters where nobody dies
-                !values(encounter.entities).find((it) => it.isBoss || it.deaths.length);
-
             // if any of the 'discard' conditions are true, discard our current encounter by
             // resetting it to empty.
-            if (shouldDiscard) {
+            if (this.shouldDiscardEncounter(encounter)) {
                 encounter.reset();
                 encounter.zone = this.zone;
                 return;
@@ -339,6 +326,22 @@ export default class Parser {
         // our encounter is still ongoing.
         encounter.end = time;
         encounter.duration = encounter.end - encounter.start;
+    }
+
+    /**
+     * Should we discard this encounter?
+     *
+     * @param encounter the encounter to evaluate discarding
+     * @private
+     */
+    private shouldDiscardEncounter(encounter: Encounter): boolean {
+        return (
+            encounter.duration <= 0 ||
+            // don't keep encounters where we don't have enemies.
+            !values(encounter.entities).find((it) => it.isEnemy) ||
+            // don't keep non-boss encounters where nobody dies
+            !values(encounter.entities).find((it) => it.isBoss || it.deaths.length)
+        );
     }
 
     /**
@@ -661,7 +664,7 @@ export default class Parser {
      */
     changeZone(timestamp: number, zone: string) {
         this.zone = zone;
-        this.manageEncounterTime(timestamp, true);
+        return this.manageEncounterTime(timestamp, true);
     }
 
     /**
@@ -670,13 +673,14 @@ export default class Parser {
      * @param timestamp the time of death
      * @param killer the name of the killer
      */
-    addPlayerDeath(timestamp: number, killer: string) {
+    addPlayerDeath(timestamp: number, killer: string): Encounter | undefined {
         // todo: death recap
         const encounter = last(this.encounters)!;
 
         // mark the player dead, the encounter failed, and force a new encounter.
         const player = encounter.getOrCreate(PLAYER_ID);
         const killerEntity = encounter.getOrCreate(this.nameToId(killer));
+        player.isDead = true;
         player.deaths.push({
             timestamp,
             killerId: killerEntity.id,
@@ -684,8 +688,7 @@ export default class Parser {
         });
 
         encounter.isFailed = true;
-
-        this.manageEncounterTime(timestamp, true);
+        return this.manageEncounterTime(timestamp, true);
     }
 
     /**
@@ -882,6 +885,7 @@ export class Encounter {
         this.end = 0;
         this.isOver = false;
         this.isBoss = false;
+        this.isFailed = false;
         this.warnings = {};
     }
 }
