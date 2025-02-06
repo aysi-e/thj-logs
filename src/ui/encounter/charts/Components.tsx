@@ -94,10 +94,10 @@ export const ChartHeader = styled.div<{ $grid: string }>`
     right: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 0 4px 16px;
+    padding: 4px 8px 4px 8px;
     display: grid;
     gap: 8px;
-    grid-template-columns: ${(props) => props.$grid} 16px;
+    grid-template-columns: ${(props) => props.$grid};
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -115,10 +115,10 @@ export const ChartFooter = styled.div<{ $grid: string }>`
     bottom: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 0 4px 16px;
+    padding: 4px 8px 4px 8px;
     background-color: ${theme.color.darkerBackground};
     display: grid;
-    grid-template-columns: ${(props) => props.$grid} 16px;
+    grid-template-columns: ${(props) => props.$grid};
     grid-gap: 8px;
     border-top: 1px solid ${theme.color.secondary};
 `;
