@@ -97,7 +97,7 @@ export const ChartHeader = styled.div<{ $grid: string }>`
     padding: 4px 8px 4px 8px;
     display: grid;
     gap: 8px;
-    grid-template-columns: ${(props) => props.$grid};
+    grid-template-columns: ${(props) => props.$grid} 8px;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -118,7 +118,7 @@ export const ChartFooter = styled.div<{ $grid: string }>`
     padding: 4px 8px 4px 8px;
     background-color: ${theme.color.darkerBackground};
     display: grid;
-    grid-template-columns: ${(props) => props.$grid};
+    grid-template-columns: ${(props) => props.$grid} 8px;
     grid-gap: 8px;
     border-top: 1px solid ${theme.color.secondary};
 `;
@@ -127,7 +127,7 @@ export const ChartFooter = styled.div<{ $grid: string }>`
  * Props accepted by the BaseChart component.
  */
 type Props = {
-    title?: string;
+    title?: string | ReactNode;
     height?: number;
     className?: string;
     header?: boolean;

@@ -4,6 +4,8 @@ import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
 import { round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
 import theme from '../../../theme.tsx';
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 /**
  * Props accepted by damage breakdown charts.
@@ -211,8 +213,17 @@ const INCOMING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
 export const IncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const title = `damage taken by ${entity.name}`;
+    const link = values(encounter.entities).indexOf(entity);
+    const title = (
+        <div>
+            {`damage dealt by `}
+            <HeaderLink>
+                <Link to={`character/${link}`}>{entity.name}</Link>
+            </HeaderLink>
+        </div>
+    );
     const items = toDamageBreakdownItems(entity, `incoming`, encounter);
+
     return (
         <DetailChart
             title={title}
@@ -324,8 +335,18 @@ const OUTGOING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
 export const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const title = `damage dealt by ${entity.name}`;
+    const link = values(encounter.entities).indexOf(entity);
+    const title = (
+        <div>
+            {`damage dealt by `}
+            <HeaderLink>
+                <Link to={`character/${link}`}>{entity.name}</Link>
+            </HeaderLink>
+        </div>
+    );
+
     const items = toDamageBreakdownItems(entity, `outgoing`, encounter);
+
     return (
         <DetailChart
             title={title}
@@ -336,6 +357,26 @@ export const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
         />
     );
 };
+
+/**
+ * A styled header link.
+ */
+const HeaderLink = styled.span`
+    color: #b6d1ff;
+    font-weight: bold;
+    text-decoration: underline dotted;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    padding: 4px;
+    margin: 0 -4px;
+`;
 
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.

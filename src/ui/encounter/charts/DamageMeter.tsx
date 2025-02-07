@@ -10,6 +10,7 @@ import {
     DamageItemText,
 } from './Components.tsx';
 import { Link } from 'react-router-dom';
+import { ReactNode } from 'react';
 
 /**
  * Type representing an item on a damage meter.
@@ -100,7 +101,7 @@ type Props = {
     /**
      * The title text.
      */
-    title: string;
+    title: string | ReactNode;
 
     /**
      * The items to display.

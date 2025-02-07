@@ -10,6 +10,7 @@ import {
     DamageItemNumber,
     DamageItemText,
 } from './Components.tsx';
+import { ReactNode } from 'react';
 
 /**
  * Props accepted by a detail chart.
@@ -18,7 +19,7 @@ type Props = {
     /**
      * The title text.
      */
-    title: string;
+    title: string | ReactNode;
 
     /**
      * The items to display.
