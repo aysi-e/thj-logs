@@ -97,6 +97,55 @@ export const KNOWN_BOSSES = [
     { name: `Kerafyrm`, zone: `The Sleeper's Tomb`, era: `velious` },
 
     // -- luclin era --
+    { name: `an evolved burrower`, zone: `The Acrylia Caverns`, era: `luclin` },
+    // todo: better encounter support for 'event' encounters with waves of enemies
+    { name: `Khati Sha the Twisted`, zone: `The Acrylia Caverns`, era: `luclin` },
+
+    { name: `The Va’Dyn`, zone: `The Akheva Ruins`, era: `luclin` },
+    { name: `The Itraer Vius`, zone: `The Akheva Ruins`, era: `luclin` },
+    { name: `The Insanity Crawler`, zone: `The Akheva Ruins`, era: `luclin` },
+    { name: `Shei Vinitras`, zone: `The Akheva Ruins`, era: `luclin` },
+
+    { name: `Servitor of Luclin`, zone: `Grieg's End`, era: `luclin` },
+    { name: `Grieg Veneficus`, zone: `Grieg's End`, era: `luclin` },
+
+    { name: `Lcea Katta`, zone: `Katta Castellum`, era: `luclin` },
+    { name: `Nathyn Illuminious`, zone: `Katta Castellum`, era: `luclin` },
+
+    // todo: better encounter support for 'event' encounters with waves of enemies
+    { name: `a burrower parasite`, zone: `The Deep`, era: `luclin` },
+    { name: `Thought Horror Overfiend`, zone: `The Deep`, era: `luclin` },
+
+    { name: `Doomshade`, zone: `The Umbral Plains`, era: `luclin` },
+    { name: `Rumblecrush`, zone: `The Umbral Plains`, era: `luclin` },
+    { name: `Zelnithak`, zone: `The Umbral Plains`, era: `luclin` },
+
+    { name: `Lord Inquisitor Seru`, zone: `Sanctus Seru`, era: `luclin` },
+
+    // ssra temple
+    { name: `a glyph covered serpent`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Vyzh\`dra the Exiled`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Vyzh\`dra the Cursed`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Rhag\`Zhezum`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Rhag\`Mozdezh`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Arch Lich Rhag\`Zadune`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `High Priest of Ssraeshza`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Xerkizh the Creator`, zone: `Ssraeshza Temple`, era: `luclin` },
+    { name: `Emperor Ssraeshza`, zone: `Ssraeshza Temple`, era: `luclin` },
+
+    // vex thal
+    { name: `Va Dyn Khar`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Thall Va Xakra`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Kaas Thox Xi Ans Dyek`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Diabo Xi Va`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Diabo Xi Xin`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Diabo Xi Xin Thall`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Thall Va Kelun`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Diabo Xi Va Temariel`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Thall Xundraux Diabo`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Va Xi Aten Ha Ra`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Kaas Thox Xi Aten Ha Ra`, zone: `Vex Thal`, era: `luclin` },
+    { name: `Aten Ha Ra`, zone: `Vex Thal`, era: `luclin` },
 ];
 
 /**
