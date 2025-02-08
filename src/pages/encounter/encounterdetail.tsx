@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
 import { Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
+import theme, { ScrollableContent } from '../../theme.tsx';
 import { map, partition, size, values } from 'lodash';
 import { DateTime, Duration } from 'luxon';
 import { Encounter } from '../../parser/parser.ts';
@@ -11,7 +11,7 @@ import CharacterDetailPage from './characterdetail.tsx';
 import { toDPSData } from '../../parser/timeline.ts';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { shortenNumber } from '../../util/numbers.ts';
-import { UI_WARNING, UIIcon } from '../../ui/Icon.tsx';
+import { UI_CANCEL, UI_WARNING, UIIcon } from '../../ui/Icon.tsx';
 import Tooltip, { BasicTooltip } from '../../ui/Tooltip.tsx';
 import {
     DamageDealtChart,
@@ -42,44 +42,53 @@ const EncounterDetailPage = observer(() => {
     return (
         <Container>
             <Header>
-                <Link to={`/encounter/${id}`}>
-                    <HeaderText>
-                        <HeaderTime>
-                            {start.toLocaleString({
-                                month: 'short',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                            })}
-                        </HeaderTime>
-                        {` `}
-                        <span>{encounter.isFailed ? `defeated by` : `killed`}</span>
-                        {` `}
-                        <ColoredHeaderText $failed={encounter.isFailed}>{name}</ColoredHeaderText>
-                        {` in `}
-                        <ColoredHeaderText $failed={encounter.isFailed}>
-                            {duration.rescale().toHuman()}
-                        </ColoredHeaderText>
-                    </HeaderText>
-                </Link>
-                <EncounterWarnings encounter={encounter} />
+                <HeaderContent>
+                    <EncounterWarnings encounter={encounter} />
+                    <Link to={`/encounter/${id}`}>
+                        <HeaderText>
+                            <HeaderTime>
+                                {start.toLocaleString({
+                                    month: 'short',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                            </HeaderTime>
+                            {` `}
+                            <span>{encounter.isFailed ? `defeated by` : `killed`}</span>
+                            {` `}
+                            <ColoredHeaderText $failed={encounter.isFailed}>
+                                {name}
+                            </ColoredHeaderText>
+                            {` in `}
+                            <ColoredHeaderText $failed={encounter.isFailed}>
+                                {duration.rescale().toHuman()}
+                            </ColoredHeaderText>
+                        </HeaderText>
+                    </Link>
+                </HeaderContent>
+                <ButtonContainer to={`/encounter`}>
+                    <UIIcon path={UI_CANCEL} height={24} width={24} />
+                </ButtonContainer>
             </Header>
 
-            <Routes>
-                <Route
-                    path={`character/:id/*`}
-                    element={<CharacterDetailPage encounter={encounter} />}
-                />
-                <Route
-                    index
-                    element={
-                        <Content>
-                            <EncounterDamageGraph encounter={encounter} />
-                            <EncounterSummary encounter={encounter} />
-                        </Content>
-                    }
-                />
-            </Routes>
+            <ContentContainer>
+                <Routes>
+                    <Route
+                        path={`character/:id/*`}
+                        element={<CharacterDetailPage encounter={encounter} />}
+                    />
+                    <Route
+                        index
+                        element={
+                            <Content>
+                                <EncounterDamageGraph encounter={encounter} />
+                                <EncounterSummary encounter={encounter} />
+                            </Content>
+                        }
+                    />
+                </Routes>
+            </ContentContainer>
         </Container>
     );
 });
@@ -89,7 +98,10 @@ export default EncounterDetailPage;
 /**
  * A container component for the encounter detail page.
  */
-const Container = styled.div``;
+const Container = styled.div`
+    height: calc(100% - 47px);
+    overflow-y: hidden;
+`;
 
 /**
  * A header component for the encounter detail page.
@@ -102,6 +114,13 @@ const Header = styled.div`
     border-bottom: 1px solid ${theme.color.secondary};
     display: flex;
     justify-content: space-between;
+`;
+
+/**
+ * A styled header content component for the encounter detail page.
+ */
+const HeaderContent = styled.div`
+    display: flex;
 `;
 
 /**
@@ -126,7 +145,7 @@ const HeaderWarning = styled.div`
     align-items: center;
     display: flex;
     cursor: pointer;
-    margin-right: 10px;
+    margin-left: 10px;
     z-index: 1;
 `;
 
@@ -136,6 +155,15 @@ const HeaderWarning = styled.div`
 const ColoredHeaderText = styled.span<{ $failed: boolean }>`
     font-weight: bold;
     color: ${(props) => (props.$failed ? theme.color.error : theme.color.success)};
+`;
+
+/**
+ * Styled content container that handles scrolling
+ */
+const ContentContainer = styled(ScrollableContent)`
+    width: calc(100% - 8px);
+    height: calc(100% - 32px);
+    overflow-y: scroll;
 `;
 
 /**
@@ -244,8 +272,8 @@ const EncounterWarnings = ({ encounter }: { encounter: Encounter }) => {
                 <StyledTooltip
                     renderTrigger={() => (
                         <UIIcon
-                            height={26}
-                            width={26}
+                            height={18}
+                            width={18}
                             path={UI_WARNING}
                             foregroundColor={theme.color.secondary}
                         />
@@ -309,4 +337,25 @@ const WarningContent = styled.div`
     flex-direction: column;
     gap: 4px;
     text-align: center;
+`;
+
+/**
+ * Styled div for an icon button.
+ */
+const ButtonContainer = styled(Link)`
+    display: flex;
+
+    width: 46px;
+
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
 `;

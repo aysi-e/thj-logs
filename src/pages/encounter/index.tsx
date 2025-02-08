@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
+import theme, { ScrollableContent } from '../../theme.tsx';
 import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
 import { DateTime, Duration } from 'luxon';
@@ -68,18 +68,15 @@ const EncounterIndex = observer(() => {
                         </div>
                     </HeaderText>
                 </Link>
-                <ButtonContainer onClick={clear}>
-                    <UIIcon path={UI_CANCEL} height={30} width={30} />
-                </ButtonContainer>
             </Header>
             <Routes>
                 <Route path={`:id/*`} element={<EncounterDetailPage />} />
                 <Route
                     index
                     element={
-                        <Content>
+                        <ScrollableContent>
                             <EncounterList encounters={log.encounters} />
-                        </Content>
+                        </ScrollableContent>
                     }
                 />
             </Routes>
@@ -98,7 +95,7 @@ const Container = styled.div`
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: clip;
 `;
 
 /**
@@ -141,33 +138,6 @@ const ButtonContainer = styled.div`
 
     &:active {
         background-color: rgba(0, 0, 0, 0.5);
-    }
-`;
-
-/**
- * The content div for the encounter index page.
- */
-const Content = styled.div`
-    margin: 0 0 0 8px;
-    width: calc(100% - 8px);
-
-    overflow-x: hidden;
-    overflow-y: scroll;
-    scrollbar-color: rgba(0, 0, 0, 0.5) ${theme.color.background};
-
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        /* Foreground */
-        background: rgba(0, 0, 0, 0.5);
-    }
-
-    ::-webkit-scrollbar-track {
-        /* Background */
-        background: ${theme.color.background};
     }
 `;
 

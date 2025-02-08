@@ -47,7 +47,6 @@ export const ChartContent = styled.div<ChartContentProps>`
     margin-bottom: ${(props) => (props.$isFooter ? `31px` : 0)};
     margin-top: ${(props) => (props.$isHeader ? `31px` : 0)};
 
-    overflow-x: hidden;
     overflow-y: scroll;
     scrollbar-color: rgba(0, 0, 0, 0.5) ${theme.color.darkerBackground};
 

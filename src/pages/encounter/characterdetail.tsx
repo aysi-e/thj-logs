@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
+import theme, { ScrollableContent } from '../../theme.tsx';
 import { Encounter } from '../../parser/parser.ts';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
@@ -34,13 +34,21 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
                     showing character details for <strong>{entity.name}</strong>
                 </HeaderText>
             </Header>
-            <Content>
-                <CharacterDamageTimeline entity={entity} encounter={encounter} />
-                <BreakdownContainer>
-                    <DetailedOutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
-                    <DetailedIncomingDamageBreakdownChart encounter={encounter} entity={entity} />
-                </BreakdownContainer>
-            </Content>
+            <ContentContainer>
+                <Content>
+                    <CharacterDamageTimeline entity={entity} encounter={encounter} />
+                    <BreakdownContainer>
+                        <DetailedOutgoingDamageBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                        <DetailedIncomingDamageBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                    </BreakdownContainer>
+                </Content>
+            </ContentContainer>
         </Container>
     );
 });
@@ -50,7 +58,20 @@ export default CharacterDetailPage;
 /**
  * A container component for the character detail page.
  */
-const Container = styled.div``;
+const Container = styled.div`
+    position: absolute;
+    margin-left: -8px;
+    height: calc(100% - 32px - 47px);
+    width: 100%;
+`;
+
+/**
+ * Styled content container that handles scrolling
+ */
+const ContentContainer = styled(ScrollableContent)`
+    width: calc(100% - 8px);
+    height: calc(100% - 32px);
+`;
 
 /**
  * A header component for the character detail page.

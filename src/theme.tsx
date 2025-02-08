@@ -2,6 +2,8 @@
 // Module containing theme and style information.
 //
 
+import styled from 'styled-components';
+
 /**
  * The constant theme object.
  */
@@ -54,3 +56,29 @@ export type ComponentProps = {
 };
 
 export default theme;
+
+/**
+ * The content div for the encounter index page.
+ */
+export const ScrollableContent = styled.div`
+    margin: 0 0 0 8px;
+    width: calc(100% - 8px);
+
+    overflow-y: scroll;
+    scrollbar-color: rgba(0, 0, 0, 0.5) ${theme.color.background};
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        /* Foreground */
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    ::-webkit-scrollbar-track {
+        /* Background */
+        background: ${theme.color.background};
+    }
+`;
