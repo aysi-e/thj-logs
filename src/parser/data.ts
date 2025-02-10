@@ -132,6 +132,8 @@ export const KNOWN_BOSSES = [
     { name: `High Priest of Ssraeshza`, zone: `Ssraeshza Temple`, era: `luclin` },
     { name: `Xerkizh the Creator`, zone: `Ssraeshza Temple`, era: `luclin` },
     { name: `Emperor Ssraeshza`, zone: `Ssraeshza Temple`, era: `luclin` },
+    // there is actually a space at the end of the name `Emperor Ssraeshza `
+    { name: `Emperor Ssraeshza `, zone: `Ssraeshza Temple`, era: `luclin` },
 
     // vex thal
     { name: `Va Dyn Khar`, zone: `Vex Thal`, era: `luclin` },
