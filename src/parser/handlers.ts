@@ -607,7 +607,10 @@ export const ZONE_CHANGE = {
     regex: new RegExp(`^You have entered (.+)\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, zone] = line;
-        if (zone !== `an Arena (PvP) area`) {
+        if (
+            zone !== `an Arena (PvP) area` &&
+            zone !== `an area where levitation effects do not function`
+        ) {
             return parser.changeZone(timestamp, zone);
         }
     },
