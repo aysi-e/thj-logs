@@ -200,16 +200,6 @@ export default class Parser {
         } else if (this.player.name && this.player.name === name) {
             id = this.player.id;
             mappedName = name;
-        } else if (SWARM_PET_REGEX.test(name)) {
-            const [_, owner, pet] = SWARM_PET_REGEX.exec(name)!;
-            const resolvedOwner = this.nameToId(owner);
-            const resolvedPet: { id: string; name?: string } = this.nameToId(
-                `${pet} (${resolvedOwner.name})`,
-            );
-            const petEntity = last(this.encounters)?.getOrCreate({ id: resolvedPet.id, name: pet });
-            if (petEntity) petEntity.owner = resolvedOwner.id;
-            id = resolvedPet.id;
-            mappedName = pet;
         } else if (name.startsWith(`A `)) {
             // combat log capitalization is inconsistent.
             id = `a ${name.slice(2, name.length)}`;
@@ -219,10 +209,25 @@ export default class Parser {
             mappedName = `an ${name.slice(3, name.length)}`;
         }
 
-        // sometimes corpses generate combat log events (ex: dots). don't make new entities for them.
-        if (name.endsWith('`s corpse')) {
-            id = name.slice(0, name.length - 9);
-            mappedName = name.slice(0, name.length - 9);
+        if (SWARM_PET_REGEX.test(name)) {
+            const [_, owner, pet] = SWARM_PET_REGEX.exec(name)!;
+            if (pet == 'corpse') {
+                // sometimes corpses generate combat log events (ex: dots). don't make new entities for them.
+                id = name.slice(0, name.length - 9);
+                mappedName = name.slice(0, name.length - 9);
+            } else {
+                const resolvedOwner = this.nameToId(owner);
+                const resolvedPet: { id: string; name?: string } = this.nameToId(
+                    `${pet} (${resolvedOwner.name})`,
+                );
+                const petEntity = last(this.encounters)?.getOrCreate({
+                    id: resolvedPet.id,
+                    name: pet,
+                });
+                if (petEntity) petEntity.owner = resolvedOwner.id;
+                id = resolvedPet.id;
+                mappedName = pet;
+            }
         }
 
         return {

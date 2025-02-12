@@ -216,7 +216,7 @@ export const IncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
     const link = values(encounter.entities).indexOf(entity);
     const title = (
         <div>
-            {`damage dealt by `}
+            {`damage taken by `}
             <HeaderLink>
                 <Link to={`character/${link}`}>{entity.name}</Link>
             </HeaderLink>

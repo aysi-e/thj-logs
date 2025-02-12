@@ -1,7 +1,7 @@
 import { round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
-import { Encounter } from '../../../parser/parser.ts';
+import { Encounter, UNKNOWN_ID } from '../../../parser/parser.ts';
 import Entity from '../../../parser/entity.ts';
 import { keys } from 'mobx';
 import { IncomingDamageBreakdownChart, OutgoingDamageBreakdownChart } from './DamageBreakdown.tsx';
@@ -157,8 +157,11 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
         (acc, val) => {
             const item = toDamageEntityItem(val, type, encounter);
             acc.items.push(item);
-            acc.allies = acc.allies && !val.isEnemy;
-            acc.enemies = acc.enemies && !!val.isEnemy;
+            if (item.entity.id !== UNKNOWN_ID) {
+                // don't include unknown entities as allies or enemies
+                acc.allies = acc.allies && !val.isEnemy;
+                acc.enemies = acc.enemies && !!val.isEnemy;
+            }
             acc.total += item.damage;
             return acc;
         },

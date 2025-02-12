@@ -465,7 +465,7 @@ export const OTHER_MELEE_MISS = {
  * Regex groups: timestamp, victim, damage dealt.
  */
 export const OTHER_DAMAGE_SHIELD_HIT = {
-    regex: new RegExp(`^(.+?) was hit by non-melee for (\\d+) points? of damage.$`),
+    regex: new RegExp(`^(.+?) was hit by non-melee for (\\d+) points? of damage\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, damage] = line;
         // to resolve the damage shield hit, we need to look at the next two lines.
@@ -494,7 +494,7 @@ export const OTHER_DAMAGE_SHIELD_HIT = {
                 }
             } else if (line2) {
                 // ex: Target was burned.
-                const effectLine = new RegExp(`^(.+) was (?!hit by non-melee)(.+).$`).exec(line1);
+                const effectLine = new RegExp(`^(.+) was (?!hit by non-melee)(.+)\.$`).exec(line1);
                 // the hit that caused the damage shield (to determine the source of the damage shield)
                 const damageSourceLine =
                     OTHER_MELEE_HIT.regex.exec(line2) || OTHER_MELEE_MISS.regex.exec(line2);
@@ -568,7 +568,7 @@ export const OTHER_CRITICAL_SPELL = {
  * Regex groups: timestamp, source, target, damage, spell name.
  */
 export const SPELL_HIT = {
-    regex: new RegExp(`^(.+?) hit (.+?) for (\\d+) points of non-melee damage. \\((.+)\\)$`),
+    regex: new RegExp(`^(.+?) hit (.+?) for (\\d+) points of non-melee damage\. \\((.+)\\)$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, source, target, damage, spell] = line;
         const isPet = new RegExp(`(.+) \\(Owner: (.+)\\)`).exec(source);
@@ -591,10 +591,14 @@ export const SPELL_HIT = {
  * Regex groups: spell description, spell name.
  */
 export const SPELL_HIT_YOU = {
-    regex: new RegExp(`^(.+)\. You have taken (\d+) points? of damage\.$`),
+    regex: new RegExp(`^(.*?)\.?  You have taken (\\d+) points? of damage\.$`),
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
         const [_, description, damage] = line;
-        parser.addUnknownPlayerSpellHit(timestamp, description, parseInt(damage));
+        if (!description.trim().length) {
+            parser.addUnknownPlayerSpellHit(timestamp, '(no description)', parseInt(damage));
+        } else {
+            parser.addUnknownPlayerSpellHit(timestamp, description, parseInt(damage));
+        }
     },
 };
 
