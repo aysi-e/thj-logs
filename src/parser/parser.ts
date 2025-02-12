@@ -43,6 +43,11 @@ export const UNKNOWN_ID = `#unknown`;
 const TIMESTAMP_REGEX = new RegExp(`^\\[(.*?)\] (.*)$`);
 
 /**
+ * Regular expression which matches a swarm pet's name and separates it into owner and pet name.
+ */
+const SWARM_PET_REGEX = RegExp('^(.+)`s (.+)$');
+
+/**
  * List of regular expressions that indicate that the message should not be parsed.
  */
 const CHAT_SPAM_AVOIDLIST = [
@@ -195,6 +200,16 @@ export default class Parser {
         } else if (this.player.name && this.player.name === name) {
             id = this.player.id;
             mappedName = name;
+        } else if (SWARM_PET_REGEX.test(name)) {
+            const [_, owner, pet] = SWARM_PET_REGEX.exec(name)!;
+            const resolvedOwner = this.nameToId(owner);
+            const resolvedPet: { id: string; name?: string } = this.nameToId(
+                `${pet} (${resolvedOwner.name})`,
+            );
+            const petEntity = last(this.encounters)?.getOrCreate({ id: resolvedPet.id, name: pet });
+            if (petEntity) petEntity.owner = resolvedOwner.id;
+            id = resolvedPet.id;
+            mappedName = pet;
         } else if (name.startsWith(`A `)) {
             // combat log capitalization is inconsistent.
             id = `a ${name.slice(2, name.length)}`;

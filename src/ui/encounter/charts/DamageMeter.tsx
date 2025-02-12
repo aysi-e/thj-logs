@@ -22,6 +22,11 @@ export type MeterItem = {
     entity: Entity;
 
     /**
+     * The name to display for this entity.
+     */
+    displayName: string;
+
+    /**
      * The entity index.
      */
     index: number;
@@ -160,7 +165,7 @@ const DamageMeter = (props: Props) => {
                 $width={it.percent}
                 $link={!!it.link}
             >
-                <DamageItemText>{it.entity.name}</DamageItemText>
+                <DamageItemText>{it.displayName}</DamageItemText>
                 {columns.map(
                     ({ title, value, format = (v) => v.toString(), total }: MeterColumn) => {
                         const val = value(it);

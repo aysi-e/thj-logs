@@ -87,9 +87,14 @@ const toDamageEntityItem = (
         });
     });
 
+    let name = entity.name;
+    if (name && entity.owner) {
+        name = `${name} (${encounter.entities[entity.owner].name || `Unknown`})`;
+    }
+
     return {
         entity,
-        name: entity.name || entity.id,
+        name: name || entity.id,
         damage,
         dps: (damage / encounter.duration) * 1000,
         index: keys(encounter.entities).indexOf(entity.id),
@@ -108,6 +113,7 @@ const toMeterItem = (
     total: number,
 ): MeterItem => ({
     entity: item.entity,
+    displayName: item.name,
     link: `character/${item.index}`,
     index: item.index,
     value: item.damage,
