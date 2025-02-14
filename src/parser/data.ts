@@ -121,6 +121,8 @@ export const KNOWN_BOSSES = [
     { name: `Zelnithak`, zone: `The Umbral Plains`, era: `luclin` },
 
     { name: `Lord Inquisitor Seru`, zone: `Sanctus Seru`, era: `luclin` },
+    // there is actually a space at the end of the name `Lord Inquisitor Seru `
+    { name: `Lord Inquisitor Seru `, zone: `Sanctus Seru`, era: `luclin` },
 
     // ssra temple
     { name: `a glyph covered serpent`, zone: `Ssraeshza Temple`, era: `luclin` },
