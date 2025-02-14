@@ -19,6 +19,8 @@ import {
     SPELL_HIT_YOU,
     YOU_CRITICAL_SPELL,
     ZONE_CHANGE,
+    HEAL,
+    ABSORB,
 } from './handlers.ts';
 import { DateTime } from 'luxon';
 import { customAlphabet } from 'nanoid/non-secure';
@@ -107,6 +109,16 @@ export default class Parser {
     encounters: Encounter[] = [];
 
     /**
+     * Events that are waiting to be evaluated.
+     */
+    pending: {
+        timestamp: number;
+        encounterId: string;
+        handler: Handler;
+        line: string;
+    }[] = [];
+
+    /**
      * Message handlers.
      */
     handlers: Handler[] = [
@@ -124,6 +136,8 @@ export default class Parser {
         PLAYER_DEATH,
         PLAYER_KILL,
         OTHER_DEATH,
+        HEAL,
+        ABSORB,
     ];
 
     /**
@@ -336,6 +350,13 @@ export default class Parser {
 
             // otherwise, finalize our encounter and create a new active encounter.
             encounter.isOver = true;
+            if (
+                encounter.isBoss &&
+                values(encounter.entities).find((it) => it.isBoss && !it.isDead)
+            ) {
+                // if it's a boss encounter and we didnt kill the boss, mark it as failed
+                encounter.isFailed = true;
+            }
             const next = new Encounter(this.player, this.encounters.length.toString());
             next.zone = this.zone;
             next.start = time;
@@ -652,6 +673,41 @@ export default class Parser {
             `spell`,
             damage,
         );
+
+        this.nextLineCritical = false;
+
+        // entities can actually make spell hits while dead, but the combat log attributes them to their corpse
+        if (sourceEntity.isDead && !source.endsWith('`s corpse')) sourceEntity.isDead = false;
+    }
+
+    /**
+     * Add a healing event to this Encounter, originating from an entity.
+     */
+    addHealingHit(
+        timestamp: number,
+        source: string,
+        target: string,
+        spellName: string,
+        amount: number,
+        isCritical: boolean = false,
+        isAbsorb: boolean = false,
+    ) {
+        const encounter = last(this.encounters)!;
+        const sourceEntity = encounter.getOrCreate(this.nameToId(source));
+        const targetEntity = encounter.getOrCreate(this.nameToId(target));
+
+        sourceEntity.outgoing.addHealing(spellName, targetEntity.id, amount, isCritical, isAbsorb);
+
+        targetEntity.incoming.addHealing(spellName, sourceEntity.id, amount, isCritical, isAbsorb);
+
+        // encounter.timeline.addDamageEvent(
+        //     timestamp,
+        //     sourceEntity.id,
+        //     targetEntity.id,
+        //     spellName,
+        //     `spell`,
+        //     damage,
+        // );
 
         this.nextLineCritical = false;
 

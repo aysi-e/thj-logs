@@ -172,7 +172,7 @@ export class CombatEvents {
     /**
      * Healing combat events involving this entity, keyed by target and spell name.
      */
-    heal: any;
+    heal: Record<string, Record<string, Healing>> = {};
 
     /**
      * Damage shield combat events involving this entity, keyed by target and damage shield description.
@@ -280,6 +280,45 @@ export class CombatEvents {
             spell.average = damage;
         } else {
             spell.average = (spell.average + damage) / 2;
+        }
+    }
+
+    /**
+     * Add a healing combat event to this CombatEvents collection.
+     *
+     * @param spellName the healing spell name
+     * @param targetId the id of the player who was healed
+     * @param amount the amount of healing done
+     * @param isCritical is this a critical heal?
+     * @param isAbsorb is this an absorb effect?
+     */
+    addHealing(
+        spellName: string,
+        targetId: string,
+        amount: number,
+        isCritical: boolean = false,
+        isAbsorb: boolean = false,
+    ) {
+        if (!this.heal[targetId]) this.heal[targetId] = {};
+        if (!this.heal[targetId][spellName])
+            this.heal[targetId][spellName] = new Healing(spellName, targetId, isAbsorb);
+
+        const heal = this.heal[targetId][spellName];
+
+        if (isCritical) {
+            heal.crits++;
+        } else {
+            heal.hits++;
+        }
+
+        heal.total += amount;
+
+        if (heal.min === undefined || amount < heal.min) heal.min = amount;
+        if (heal.max === undefined || amount > heal.max) heal.max = amount;
+        if (heal.average === undefined) {
+            heal.average = amount;
+        } else {
+            heal.average = (heal.average + amount) / 2;
         }
     }
 
@@ -626,5 +665,83 @@ export class DamageShieldDamage {
      */
     avoided() {
         return 0;
+    }
+}
+
+/**
+ * Data type compiling statistics about healing done by an entity during an encounter.
+ */
+export class Healing {
+    /**
+     * The total number of hits for this damage type.
+     */
+    hits: number = 0;
+
+    /**
+     * The total number of crits for this damage type.
+     */
+    crits: number = 0;
+
+    /**
+     * The total damage done for this damage type.
+     */
+    total: number = 0;
+
+    /**
+     * The maximum hit for this damage type.
+     */
+    max: number | undefined = undefined;
+
+    /**
+     * The minimum hit for this damage type.
+     */
+    min: number | undefined = undefined;
+
+    /**
+     * The average hit for this damage type.
+     */
+    average: number | undefined = undefined;
+
+    /**
+     * Construct a Healing object for the provided effect name and target.
+     *
+     * @param name the healing spell or effect name.
+     * @param targetId the target that was healed.
+     * @param isAbsorb is this an absorb effect?
+     */
+    constructor(
+        readonly name: string,
+        readonly targetId: string,
+        readonly isAbsorb: boolean = false,
+    ) {}
+
+    /**
+     * Add the combat events included in the 'other' object into this object.
+     *
+     * @param other the object to add combat events from.
+     */
+    addFrom(other: Healing) {
+        this.crits += other.crits;
+        this.hits += other.hits;
+
+        this.total += other.total;
+
+        if (other.max && (this.max === undefined || other.max > this.max)) this.max = other.max;
+        if (other.min !== undefined && (this.min === undefined || other.min < this.min))
+            this.min = other.min;
+        if (other.average !== undefined) {
+            if (this.average === undefined) {
+                this.average = other.average;
+            } else {
+                this.average = (this.average + other.average) / 2;
+            }
+        }
+    }
+
+    /**
+     * Return the number of healing 'attempts' made by this healing damage source.
+     */
+    attempts() {
+        return this.hits + this.crits;
     }
 }

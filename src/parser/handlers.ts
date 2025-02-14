@@ -14,6 +14,11 @@ export type Handler = {
      * @param parser the parser object.
      */
     evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => Encounter | void;
+
+    /**
+     * Is this event a non-combat event (it shouldn't indicate an encounter).
+     */
+    isNonCombat?: boolean;
 };
 
 /**
@@ -651,4 +656,58 @@ export const OTHER_DEATH = {
         const [_, killed, killer] = line;
         parser.addOtherDeath(timestamp, killer, killed);
     },
+};
+
+/**
+ * Handler for healing events.
+ */
+export const HEAL = {
+    regex: new RegExp(`^(.+?) has healed (.+?) for (\\d+) points of damage\. \\((.+)\\)$`),
+    evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
+        const [_, source, target, amount, spell] = line;
+        let targetName = target;
+        if (target === `himself` || target === `herself` || target === `itself`)
+            targetName = source;
+        const isPet = new RegExp(`(.+) \\(Owner: (.+)\\)`).exec(source);
+        if (isPet) {
+            // if a pet performed a healing hit, we get owner information from the log.
+            const [_, pet, owner] = isPet;
+            parser.associatePlayerPet(pet, owner);
+            parser.addHealingHit(timestamp, pet, targetName, spell, parseInt(amount));
+        } else {
+            parser.addHealingHit(timestamp, source, targetName, spell, parseInt(amount));
+        }
+    },
+    isNonCombat: true,
+};
+
+/**
+ * Handler for self-absorb events.
+ */
+export const ABSORB = {
+    regex: new RegExp(`^(.+?) has shielded (.+?) from (\\d+) points of damage\. \\((.+)\\)$`),
+    evaluate: (timestamp: number, line: RegExpMatchArray, parser: Parser) => {
+        const [_, source, target, amount, spell] = line;
+        let targetName = target;
+        if (target === `himself` || target === `herself` || target === `itself`)
+            targetName = source;
+        const isPet = new RegExp(`(.+) \\(Owner: (.+)\\)`).exec(source);
+        if (isPet) {
+            // if a pet performed a healing hit, we get owner information from the log.
+            const [_, pet, owner] = isPet;
+            parser.associatePlayerPet(pet, owner);
+            parser.addHealingHit(timestamp, pet, targetName, spell, parseInt(amount), false, true);
+        } else {
+            parser.addHealingHit(
+                timestamp,
+                source,
+                targetName,
+                spell,
+                parseInt(amount),
+                false,
+                true,
+            );
+        }
+    },
+    isNonCombat: true,
 };
