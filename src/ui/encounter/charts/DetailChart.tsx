@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import theme from '../../../theme.tsx';
 import { sortBy } from 'lodash';
-import { DamageShieldDamage, MeleeDamage, SpellDamage } from '../../../parser/entity.ts';
+import { DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysie/thj-parser-lib';
 import {
     BaseChart,
     BaseChartFooter,

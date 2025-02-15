@@ -1,13 +1,11 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { Encounter } from '../../parser/parser.ts';
+import { Encounter, toDPSData, Entity } from '@aysie/thj-parser-lib';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
-import { toDPSData } from '../../parser/timeline.ts';
-import Entity from '../../parser/entity.ts';
 import { shortenNumber } from '../../util/numbers.ts';
 import {
     DetailedIncomingDamageBreakdownChart,

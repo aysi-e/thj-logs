@@ -13,6 +13,7 @@
         "**/*": "prettier --write --ignore-unknown"
     },
     "dependencies": {
+        "@aysie/thj-parser-lib": "file:../thj-parser-lib",
         "@floating-ui/react": "^0.27.3",
         "lodash": "^4.17.21",
         "luxon": "^3.5.0",

@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import { Encounter } from '../parser/parser.ts';
+import { Encounter } from '@aysie/thj-parser-lib';
 import { createContext } from 'react';
 import {
     EncounterMessage,
