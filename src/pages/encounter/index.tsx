@@ -332,6 +332,7 @@ const TrashEncounterGroup = ({ encounters }: { encounters: Encounter[] }) => (
             const duration = Duration.fromMillis(encounter.duration);
             const enemies = values(encounter.entities)
                 .filter((it) => it.isEnemy)
+                .filter((it) => it.name !== `Unknown`)
                 .map((it) => it.name);
             let enemyNames;
             if (enemies.length <= 3) {

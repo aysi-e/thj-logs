@@ -32,6 +32,7 @@ const EncounterDetailPage = observer(() => {
     const encounter = log.encounters[id];
     const name = values(encounter.entities)
         .filter((it) => it.isEnemy)
+        .filter((it) => it.name !== `Unknown`)
         .map((it) => it.name)
         .join(', ');
     const start = DateTime.fromMillis(encounter.start);
