@@ -1,4 +1,4 @@
-import { Encounter } from '@aysie/thj-parser-lib';
+import { Encounter, Healing } from '@aysie/thj-parser-lib';
 import { Entity, DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysie/thj-parser-lib';
 import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
 import { round, values } from 'lodash';
@@ -47,6 +47,15 @@ type SpellBreakdownItem = {
     name: string;
     type: `spell`;
     damage: SpellDamage;
+};
+
+/**
+ * Type representing a healing damage breakdown (compiled healing done to all targets).
+ */
+type HealingBreakdownItem = {
+    name: string;
+    type: `heal`;
+    damage: Healing;
 };
 
 /**
@@ -143,7 +152,7 @@ const INCOMING_DAMAGE_BASIC_COLUMNS: DetailColumn[] = [
     {
         title: `avoid %`,
         value: (item) => {
-            if (item.type === `ds`) return undefined;
+            if (item.type === `ds` || item.type === `heal`) return undefined;
             const miss =
                 item.type === `melee`
                     ? item.damage.miss +
@@ -195,14 +204,14 @@ const INCOMING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
     {
         title: `avoid`,
         value: (item) => {
-            if (item.type === `ds`) return undefined;
+            if (item.type === `ds` || item.type === `heal`) return undefined;
             return item.damage.avoided();
         },
     },
     {
         title: `avoid %`,
         value: (item) => {
-            if (item.type === `ds`) return undefined;
+            if (item.type === `ds` || item.type === `heal`) return undefined;
             return item.damage.avoided() / item.damage.attempts();
         },
         format: (value: number) => `${round(value * 100)}%`,
@@ -317,14 +326,14 @@ const OUTGOING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
     {
         title: `avoid`,
         value: (item) => {
-            if (item.type === `ds`) return undefined;
+            if (item.type === `ds` || item.type === `heal`) return undefined;
             return item.damage.avoided();
         },
     },
     {
         title: `avoid %`,
         value: (item) => {
-            if (item.type === `ds`) return undefined;
+            if (item.type === `ds` || item.type === `heal`) return undefined;
             return item.damage.avoided() / item.damage.attempts();
         },
         format: (value: number) => `${round(value * 100)}%`,

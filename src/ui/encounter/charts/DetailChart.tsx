@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import theme from '../../../theme.tsx';
 import { sortBy } from 'lodash';
-import { DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysie/thj-parser-lib';
+import { DamageShieldDamage, Healing, MeleeDamage, SpellDamage } from '@aysie/thj-parser-lib';
 import {
     BaseChart,
     BaseChartFooter,
@@ -220,9 +220,58 @@ export type DamageShieldDetailItem = {
 };
 
 /**
+ * Type of detail item which contains heal data.
+ */
+export type HealingDetailItem = {
+    /**
+     * A healing detail item.
+     */
+    type: `heal`;
+
+    /**
+     * A name to use for this item.
+     */
+    name: string;
+
+    /**
+     * The spell damage object.
+     */
+    damage: Healing;
+
+    /**
+     * The amount of per-second damage or healing dealt by this item.
+     */
+    perSecond: number;
+
+    /**
+     * The label to apply to the per-second value (ex: DPS, HPS).
+     */
+    label: string;
+
+    /**
+     * The percentage value for this item.
+     */
+    percent: number;
+
+    /**
+     * The background color to use for this item.
+     */
+    background?: string;
+
+    /**
+     * The text color to use for this item.
+     */
+    color?: string;
+};
+
+/**
  * Item information for a detail chart.
  */
-export type DetailItem = MeleeDetailItem | DamageShieldDetailItem | SpellDetailItem;
+export type DetailItem =
+    | MeleeDetailItem
+    | DamageShieldDetailItem
+    | SpellDetailItem
+    | HealingDetailItem;
 
 /**
  * Component which displays a detailed damage breakdown chart for the Character page.

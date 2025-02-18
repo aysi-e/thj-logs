@@ -1,13 +1,10 @@
-import { round, values } from 'lodash';
-import { shortenNumber } from '../../../util/numbers.ts';
+import { Encounter, Entity, isUnknown } from '@aysie/thj-parser-lib';
+import { keys, round, values } from 'lodash';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
-import { Encounter, UNKNOWN_ID } from '@aysie/thj-parser-lib';
-import { Entity } from '@aysie/thj-parser-lib';
-import { keys } from 'mobx';
-import { IncomingDamageBreakdownChart, OutgoingDamageBreakdownChart } from './DamageBreakdown.tsx';
+import { shortenNumber } from '../../../util/numbers.ts';
 
 /**
- * Props accepted by damage-by-source charts.
+ * Props accepted by healing-by-source charts.
  */
 type Props = {
     /**
@@ -22,9 +19,9 @@ type Props = {
 };
 
 /**
- * Type representing a single line item in a damage meter.
+ * Type representing a single line item in a healing meter.
  */
-type DamageEntityItem = {
+type HealingEntityItem = {
     /**
      * The entity.
      */
@@ -36,14 +33,14 @@ type DamageEntityItem = {
     name: string;
 
     /**
-     * The total amount of damage dealt by this entity.
+     * The total amount of healing done by this entity.
      */
-    damage: number;
+    healing: number;
 
     /**
-     * The amount of damage-per-second dealt by this entity.
+     * The amount of healing-per-second dealt by this entity.
      */
-    dps: number;
+    hps: number;
 
     /**
      * The entity index.
@@ -52,38 +49,24 @@ type DamageEntityItem = {
 };
 
 /**
- * Convert an entity object into an appropriate data type to use for our damage meter.
+ * Convert an entity object into an appropriate data type to use for our healing meter.
  *
  * @param entity the entity object
- * @param type incoming or outgoing damage?
+ * @param type incoming or outgoing healing?
  * @param encounter the encounter object
  */
-const toDamageEntityItem = (
+const toHealingEntityItem = (
     entity: Entity,
     type: `incoming` | `outgoing`,
     encounter: Encounter,
 ) => {
     const ce = entity[type];
-    let damage = 0;
+    let healing = 0;
 
-    // un-spool the damage shield section
-    values(ce.ds).forEach((dm) => {
-        values(dm).forEach((ds) => {
-            damage += ds.total;
-        });
-    });
-
-    // un-spool the melee damage section
-    values(ce.melee).forEach((mm) => {
-        values(mm).forEach((melee) => {
-            damage += melee.total;
-        });
-    });
-
-    // un-spool the spell damage section
-    values(ce.spell).forEach((sm) => {
-        values(sm).forEach((spell) => {
-            damage += spell.total;
+    // un-spool the healing section
+    values(ce.heal).forEach((byType) => {
+        values(byType).forEach((ds) => {
+            healing += ds.total;
         });
     });
 
@@ -95,20 +78,20 @@ const toDamageEntityItem = (
     return {
         entity,
         name: name || entity.id,
-        damage,
-        dps: (damage / encounter.duration) * 1000,
+        healing,
+        hps: (healing / encounter.duration) * 1000,
         index: keys(encounter.entities).indexOf(entity.id),
     };
 };
 
 /**
- * Convert a DamageEntityItem into a MeterItem.
+ * Convert a HealingEntityItem into a MeterItem.
  *
- * @param item the damage item
+ * @param item the healing item
  * @param total the chart item
  */
 const toMeterItem = (
-    item: DamageEntityItem,
+    item: HealingEntityItem,
     type: `incoming` | `outgoing`,
     total: number,
 ): MeterItem => ({
@@ -116,21 +99,21 @@ const toMeterItem = (
     displayName: item.name,
     link: `character/${item.index}`,
     index: item.index,
-    value: item.damage,
-    perSecond: item.dps,
-    percent: (item.damage / total) * 100,
-    background: type === `outgoing` ? `rgb(74, 88, 164)` : `#9c4646`,
+    value: item.healing,
+    perSecond: item.hps,
+    percent: (item.healing / total) * 100,
+    background: `rgb(74, 164, 110)`,
 });
 
 /**
- * Additional props required by the DamageByCharacterChart component.
+ * Additional props required by the HealingByCharacterChart component.
  */
 type ChartProps = { columns: MeterColumn[]; type: `incoming` | `outgoing` };
 
 /**
  * An encounter chart which displays data based on damage done during an encounter.
  */
-const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & ChartProps) => {
+const HealingByCharacterChart = ({ encounter, entities, type, columns }: Props & ChartProps) => {
     if (entities.length === 0) {
         // todo: empty chart.
         return <></>;
@@ -138,31 +121,31 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
 
     if (entities.length === 1) {
         const entity = entities[0];
-        return type === `outgoing` ? (
-            <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
-        ) : (
-            <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
-        );
+        // return type === `outgoing` ? (
+        //     <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+        // ) : (
+        //     <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+        // );
     }
 
     let title;
     let items: MeterItem[];
 
     const relation = entities.reduce<{
-        items: DamageEntityItem[];
+        items: HealingEntityItem[];
         allies: boolean;
         enemies: boolean;
         total: number;
     }>(
         (acc, val) => {
-            const item = toDamageEntityItem(val, type, encounter);
+            const item = toHealingEntityItem(val, type, encounter);
             acc.items.push(item);
-            if (item.entity.id !== UNKNOWN_ID) {
+            if (!isUnknown(item.entity)) {
                 // don't include unknown entities as allies or enemies
                 acc.allies = acc.allies && !val.isEnemy;
                 acc.enemies = acc.enemies && !!val.isEnemy;
             }
-            acc.total += item.damage;
+            acc.total += item.healing;
             return acc;
         },
         {
@@ -174,24 +157,24 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
     );
 
     if (relation.allies) {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`} by allies`;
+        title = `healing ${type === `incoming` ? `received` : `done`} by allies`;
     } else if (relation.enemies) {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`} by enemies`;
+        title = `healing ${type === `incoming` ? `received` : `done`} by enemies`;
     } else {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`}`;
+        title = `healing ${type === `incoming` ? `received` : `done`}`;
     }
 
     items = relation.items
-        .filter((it) => it.damage > 0)
+        .filter((it) => it.healing > 0)
         .map((item) => toMeterItem(item, type, relation.total));
 
     return <DamageMeter title={title} items={items} columns={columns} header footer />;
 };
 
 /**
- * A basic set of columns for an outgoing damage meter table.
+ * A basic set of columns for an outgoing healing meter table.
  */
-const OUTGOING_DAMAGE_METER_COLUMNS: MeterColumn[] = [
+const OUTGOING_HEALING_METER_COLUMNS: MeterColumn[] = [
     {
         title: `%`,
         value: (item) => item.percent,
@@ -205,7 +188,7 @@ const OUTGOING_DAMAGE_METER_COLUMNS: MeterColumn[] = [
         total: true,
     },
     {
-        title: `dps`,
+        title: `hps`,
         value: (item) => item.perSecond,
         format: (value: number) => round(value).toLocaleString(),
         total: true,
@@ -213,25 +196,25 @@ const OUTGOING_DAMAGE_METER_COLUMNS: MeterColumn[] = [
 ];
 
 /**
- * An encounter chart which displays data based on damage dealt during an encounter.
+ * An encounter chart which displays data based on healing done during an encounter.
  */
-export const DamageDealtChart = ({ encounter, entities }: Props) => (
-    <DamageByCharacterChart
+export const HealingDoneChart = ({ encounter, entities }: Props) => (
+    <HealingByCharacterChart
         encounter={encounter}
         entities={entities}
         type={`outgoing`}
-        columns={OUTGOING_DAMAGE_METER_COLUMNS}
+        columns={OUTGOING_HEALING_METER_COLUMNS}
     />
 );
 
 /**
- * An encounter chart which displays data based on damage taken during an encounter.
+ * An encounter chart which displays data based on healing received during an encounter.
  */
-export const DamageTakenChart = ({ encounter, entities }: Props) => (
-    <DamageByCharacterChart
+export const HealingReceivedChart = ({ encounter, entities }: Props) => (
+    <HealingByCharacterChart
         encounter={encounter}
         entities={entities}
         type={`incoming`}
-        columns={OUTGOING_DAMAGE_METER_COLUMNS}
+        columns={OUTGOING_HEALING_METER_COLUMNS}
     />
 );

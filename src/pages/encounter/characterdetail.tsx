@@ -11,6 +11,10 @@ import {
     DetailedIncomingDamageBreakdownChart,
     DetailedOutgoingDamageBreakdownChart,
 } from '../../ui/encounter/charts/DamageBreakdown.tsx';
+import {
+    DetailedIncomingHealingBreakdownChart,
+    DetailedOutgoingHealingBreakdownChart,
+} from '../../ui/encounter/charts/HealingBreakdown.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -41,6 +45,14 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
                             entity={entity}
                         />
                         <DetailedIncomingDamageBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                        <DetailedOutgoingHealingBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                        <DetailedIncomingHealingBreakdownChart
                             encounter={encounter}
                             entity={entity}
                         />

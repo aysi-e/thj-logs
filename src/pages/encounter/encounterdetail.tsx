@@ -16,6 +16,10 @@ import {
     DamageDealtChart,
     DamageTakenChart,
 } from '../../ui/encounter/charts/DamageByCharacter.tsx';
+import {
+    HealingDoneChart,
+    HealingReceivedChart,
+} from '../../ui/encounter/charts/HealingByCharacter.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -242,8 +246,16 @@ const EncounterSummary = ({ encounter }: { encounter: Encounter }) => {
                 <DamageTakenChart encounter={encounter} entities={friends} />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
+                <HealingDoneChart encounter={encounter} entities={friends} />
+                <HealingReceivedChart encounter={encounter} entities={friends} />
+            </EncounterSummaryContainer>
+            <EncounterSummaryContainer>
                 <DamageDealtChart encounter={encounter} entities={enemies} />
                 <DamageTakenChart encounter={encounter} entities={enemies} />
+            </EncounterSummaryContainer>
+            <EncounterSummaryContainer>
+                <HealingDoneChart encounter={encounter} entities={enemies} />
+                <HealingReceivedChart encounter={encounter} entities={enemies} />
             </EncounterSummaryContainer>
         </>
     );
