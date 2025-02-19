@@ -1,6 +1,6 @@
 // webworker block.
 
-import Parser from './parser.ts';
+import { Parser } from '@aysie/thj-parser-lib';
 
 const FILENAME_PARSER = new RegExp(`eqlog_(\\w+)_thj.txt`);
 

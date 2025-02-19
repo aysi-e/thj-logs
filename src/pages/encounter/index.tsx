@@ -5,9 +5,8 @@ import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
 import { DateTime, Duration } from 'luxon';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
-import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
 import { runInAction } from 'mobx';
-import { Encounter } from '../../parser/parser.ts';
+import { Encounter } from '@aysie/thj-parser-lib';
 import { isArray, last, partition, values } from 'lodash';
 import EncounterDetailPage from './encounterdetail.tsx';
 
@@ -333,6 +332,7 @@ const TrashEncounterGroup = ({ encounters }: { encounters: Encounter[] }) => (
             const duration = Duration.fromMillis(encounter.duration);
             const enemies = values(encounter.entities)
                 .filter((it) => it.isEnemy)
+                .filter((it) => it.name !== `Unknown`)
                 .map((it) => it.name);
             let enemyNames;
             if (enemies.length <= 3) {

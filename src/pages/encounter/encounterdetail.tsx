@@ -6,9 +6,8 @@ import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
 import { map, partition, size, values } from 'lodash';
 import { DateTime, Duration } from 'luxon';
-import { Encounter } from '../../parser/parser.ts';
+import { Encounter, toDPSData } from '@aysie/thj-parser-lib';
 import CharacterDetailPage from './characterdetail.tsx';
-import { toDPSData } from '../../parser/timeline.ts';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { shortenNumber } from '../../util/numbers.ts';
 import { UI_CANCEL, UI_WARNING, UIIcon } from '../../ui/Icon.tsx';
@@ -17,6 +16,10 @@ import {
     DamageDealtChart,
     DamageTakenChart,
 } from '../../ui/encounter/charts/DamageByCharacter.tsx';
+import {
+    HealingDoneChart,
+    HealingReceivedChart,
+} from '../../ui/encounter/charts/HealingByCharacter.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -33,6 +36,7 @@ const EncounterDetailPage = observer(() => {
     const encounter = log.encounters[id];
     const name = values(encounter.entities)
         .filter((it) => it.isEnemy)
+        .filter((it) => it.name !== `Unknown`)
         .map((it) => it.name)
         .join(', ');
     const start = DateTime.fromMillis(encounter.start);
@@ -242,8 +246,16 @@ const EncounterSummary = ({ encounter }: { encounter: Encounter }) => {
                 <DamageTakenChart encounter={encounter} entities={friends} />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
+                <HealingDoneChart encounter={encounter} entities={friends} />
+                <HealingReceivedChart encounter={encounter} entities={friends} />
+            </EncounterSummaryContainer>
+            <EncounterSummaryContainer>
                 <DamageDealtChart encounter={encounter} entities={enemies} />
                 <DamageTakenChart encounter={encounter} entities={enemies} />
+            </EncounterSummaryContainer>
+            <EncounterSummaryContainer>
+                <HealingDoneChart encounter={encounter} entities={enemies} />
+                <HealingReceivedChart encounter={encounter} entities={enemies} />
             </EncounterSummaryContainer>
         </>
     );

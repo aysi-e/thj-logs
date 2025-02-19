@@ -1,18 +1,20 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { Encounter } from '../../parser/parser.ts';
+import { Encounter, toDPSData, Entity } from '@aysie/thj-parser-lib';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
-import { toDPSData } from '../../parser/timeline.ts';
-import Entity from '../../parser/entity.ts';
 import { shortenNumber } from '../../util/numbers.ts';
 import {
     DetailedIncomingDamageBreakdownChart,
     DetailedOutgoingDamageBreakdownChart,
 } from '../../ui/encounter/charts/DamageBreakdown.tsx';
+import {
+    DetailedIncomingHealingBreakdownChart,
+    DetailedOutgoingHealingBreakdownChart,
+} from '../../ui/encounter/charts/HealingBreakdown.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -43,6 +45,14 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
                             entity={entity}
                         />
                         <DetailedIncomingDamageBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                        <DetailedOutgoingHealingBreakdownChart
+                            encounter={encounter}
+                            entity={entity}
+                        />
+                        <DetailedIncomingHealingBreakdownChart
                             encounter={encounter}
                             entity={entity}
                         />
