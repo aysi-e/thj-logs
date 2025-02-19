@@ -1,4 +1,4 @@
-import { Entity } from '@aysie/thj-parser-lib';
+import { Entity } from '@aysi-e/thj-parser-lib';
 import { sortBy } from 'lodash';
 import styled from 'styled-components';
 import theme from '../../../theme.tsx';

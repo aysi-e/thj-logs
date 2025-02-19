@@ -1,5 +1,5 @@
-import { Encounter, Healing } from '@aysie/thj-parser-lib';
-import { Entity, DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysie/thj-parser-lib';
+import { Encounter, Healing } from '@aysi-e/thj-parser-lib';
+import { Entity, DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysi-e/thj-parser-lib';
 import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
 import { round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';

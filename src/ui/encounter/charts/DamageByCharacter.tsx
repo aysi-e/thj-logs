@@ -1,8 +1,8 @@
 import { round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
-import { Encounter, UNKNOWN_ID } from '@aysie/thj-parser-lib';
-import { Entity } from '@aysie/thj-parser-lib';
+import { Encounter, UNKNOWN_ID } from '@aysi-e/thj-parser-lib';
+import { Entity } from '@aysi-e/thj-parser-lib';
 import { keys } from 'mobx';
 import { IncomingDamageBreakdownChart, OutgoingDamageBreakdownChart } from './DamageBreakdown.tsx';
 

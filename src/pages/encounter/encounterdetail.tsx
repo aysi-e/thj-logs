@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
 import { map, partition, size, values } from 'lodash';
 import { DateTime, Duration } from 'luxon';
-import { Encounter, toDPSData } from '@aysie/thj-parser-lib';
+import { Encounter, toDPSData } from '@aysi-e/thj-parser-lib';
 import CharacterDetailPage from './characterdetail.tsx';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { shortenNumber } from '../../util/numbers.ts';

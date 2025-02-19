@@ -1,4 +1,4 @@
-import { Encounter, Entity, isUnknown } from '@aysie/thj-parser-lib';
+import { Encounter, Entity, isUnknown } from '@aysi-e/thj-parser-lib';
 import { keys, round, values } from 'lodash';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
 import { shortenNumber } from '../../../util/numbers.ts';

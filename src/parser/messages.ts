@@ -1,4 +1,4 @@
-import { Encounter } from '@aysie/thj-parser-lib';
+import { Encounter } from '@aysi-e/thj-parser-lib';
 
 /**
  * Type representing a progress report from the parser.

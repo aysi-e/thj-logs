@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { Encounter, toDPSData, Entity } from '@aysie/thj-parser-lib';
+import { Encounter, toDPSData, Entity } from '@aysi-e/thj-parser-lib';
 import { Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';

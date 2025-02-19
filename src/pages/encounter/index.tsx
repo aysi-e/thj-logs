@@ -6,7 +6,7 @@ import { LogContext } from '../../state/log.ts';
 import { DateTime, Duration } from 'luxon';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { runInAction } from 'mobx';
-import { Encounter } from '@aysie/thj-parser-lib';
+import { Encounter } from '@aysi-e/thj-parser-lib';
 import { isArray, last, partition, values } from 'lodash';
 import EncounterDetailPage from './encounterdetail.tsx';
 
