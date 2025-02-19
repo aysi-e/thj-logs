@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
-import { Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
 import { map, partition, size, values } from 'lodash';
@@ -20,6 +20,8 @@ import {
     HealingDoneChart,
     HealingReceivedChart,
 } from '../../ui/encounter/charts/HealingByCharacter.tsx';
+import { SelectButton } from '../../ui/SelectButton.tsx';
+import EncounterOverview from '../../ui/encounter/EncounterOverview.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -33,7 +35,36 @@ const EncounterDetailPage = observer(() => {
     const id = parseInt(useParams().id || '');
     if (isNaN(id) || id >= log.encounters.length) return <Navigate to={'..'} relative={`path`} />;
 
+    const [nav] = useSearchParams();
+    const mode = nav.get('mode');
     const encounter = log.encounters[id];
+
+    let content = (
+        <Content>
+            <EncounterDamageGraph encounter={encounter} />
+            <EncounterSummary encounter={encounter} />
+        </Content>
+    );
+
+    switch (mode) {
+        case 'damage-done':
+            break;
+        case 'damage-taken':
+            break;
+        case 'healing':
+            break;
+        case 'deaths':
+            break;
+        case 'events':
+            break;
+        default:
+            content = (
+                <Content>
+                    <EncounterOverview encounter={encounter} />
+                </Content>
+            );
+            break;
+    }
     const name = values(encounter.entities)
         .filter((it) => it.isEnemy)
         .filter((it) => it.name !== `Unknown`)
@@ -48,7 +79,7 @@ const EncounterDetailPage = observer(() => {
             <Header>
                 <HeaderContent>
                     <EncounterWarnings encounter={encounter} />
-                    <Link to={`/encounter/${id}`}>
+                    <Link to={`/encounter/${id}${mode ? `?mode=${mode}` : ``}`}>
                         <HeaderText>
                             <HeaderTime>
                                 {start.toLocaleString({
@@ -75,22 +106,14 @@ const EncounterDetailPage = observer(() => {
                     <UIIcon path={UI_CANCEL} height={24} width={24} />
                 </ButtonContainer>
             </Header>
-
+            <EncounterNav />
             <ContentContainer>
                 <Routes>
                     <Route
                         path={`character/:id/*`}
                         element={<CharacterDetailPage encounter={encounter} />}
                     />
-                    <Route
-                        index
-                        element={
-                            <Content>
-                                <EncounterDamageGraph encounter={encounter} />
-                                <EncounterSummary encounter={encounter} />
-                            </Content>
-                        }
-                    />
+                    <Route index element={content} />
                 </Routes>
             </ContentContainer>
         </Container>
@@ -356,6 +379,7 @@ const WarningContent = styled.div`
  */
 const ButtonContainer = styled(Link)`
     display: flex;
+    flex-shrink: 0;
 
     width: 46px;
 
@@ -370,4 +394,59 @@ const ButtonContainer = styled(Link)`
     &:active {
         background-color: rgba(0, 0, 0, 0.5);
     }
+`;
+
+const EncounterNav = () => {
+    const [nav] = useSearchParams();
+    const mode = nav.get('mode');
+    return (
+        <NavContainer>
+            <Link to={'?mode=overview'}>
+                <NavButton selected={mode === 'overview' || !mode}>overview</NavButton>
+            </Link>
+            <Link to={'?mode=damage-done'}>
+                <NavButton selected={mode === 'damage-done'}>damage done</NavButton>
+            </Link>
+            <Link to={'?mode=damage-taken'}>
+                <NavButton selected={mode === 'damage-taken'}>damage taken</NavButton>
+            </Link>
+            <Link to={'?mode=healing'}>
+                <NavButton selected={mode === 'healing'}>healing</NavButton>
+            </Link>
+            <Link to={'?mode=deaths'}>
+                <NavButton selected={mode === 'deaths'}>deaths</NavButton>
+            </Link>
+            <Link to={'?mode=events'}>
+                <NavButton selected={mode === 'events'}>event log</NavButton>
+            </Link>
+        </NavContainer>
+    );
+};
+
+/**
+ * A header component for the encounter detail page.
+ */
+const NavContainer = styled.div`
+    background-color: ${theme.color.darkerBackground};
+    width: 100%;
+    color: ${theme.color.white};
+    font-family: ${theme.font.header};
+    border-bottom: 1px solid ${theme.color.secondary};
+    display: flex;
+`;
+
+/**
+ * A styled header content component for the encounter detail page.
+ */
+const NavContent = styled.div`
+    display: flex;
+`;
+
+/**
+ * A styled header content component for the encounter detail page.
+ */
+const NavButton = styled(SelectButton)`
+    display: flex;
+    font-size: 1em;
+    padding: 12px;
 `;

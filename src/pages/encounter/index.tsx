@@ -119,28 +119,6 @@ const HeaderText = styled.div`
 `;
 
 /**
- * Styled div for an icon button.
- */
-const ButtonContainer = styled.div`
-    display: flex;
-
-    height: 100%;
-    width: 46px;
-
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-
-    &:hover {
-        background-color: rgba(0, 0, 0, 0.25);
-    }
-
-    &:active {
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-`;
-
-/**
  * The props accepted by the EncounterList component.
  */
 type Props = {

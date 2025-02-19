@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
 import { Encounter, toDPSData, Entity } from '@aysi-e/thj-parser-lib';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { values } from 'lodash';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
@@ -15,6 +15,7 @@ import {
     DetailedIncomingHealingBreakdownChart,
     DetailedOutgoingHealingBreakdownChart,
 } from '../../ui/encounter/charts/HealingBreakdown.tsx';
+import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -35,6 +36,10 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
                 <HeaderText>
                     showing character details for <strong>{entity.name}</strong>
                 </HeaderText>
+
+                <ButtonContainer to={`/encounter/${encounter.id}`}>
+                    <UIIcon path={UI_CANCEL} height={24} width={24} />
+                </ButtonContainer>
             </Header>
             <ContentContainer>
                 <Content>
@@ -87,7 +92,7 @@ const ContentContainer = styled(ScrollableContent)`
  * A header component for the character detail page.
  */
 const Header = styled.div`
-    background-color: ${theme.color.darkerBackground};
+    background-color: ${theme.color.darkerGrey};
     width: 100%;
     color: ${theme.color.white};
     font-family: ${theme.font.header};
@@ -191,4 +196,25 @@ const BreakdownContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 8px;
+`;
+
+/**
+ * Styled div for an icon button.
+ */
+const ButtonContainer = styled(Link)`
+    display: flex;
+
+    width: 46px;
+
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
 `;

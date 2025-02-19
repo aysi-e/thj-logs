@@ -27,7 +27,7 @@ const theme = {
         success: '#b8ffaf',
 
         lightAlternate: '#5b6b3d',
-        selected: '#ffeab0',
+        selected: 'rgba(255,255,255,0.25)',
 
         transparentGrey: 'rgba(0,0,0,.25)',
     },
