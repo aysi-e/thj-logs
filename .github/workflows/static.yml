@@ -37,6 +37,8 @@ jobs:
                   cache: 'npm'
             - name: Install dependencies
               run: npm ci
+              env:
+                  TOKEN: ${{ secrets.GPR_PRIVATE_READ_TOKEN }}
             - name: Build
               run: npm run build
             - name: Setup Pages
