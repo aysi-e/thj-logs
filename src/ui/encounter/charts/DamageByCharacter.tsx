@@ -105,6 +105,7 @@ const toDamageEntityItem = (
  * Convert a DamageEntityItem into a MeterItem.
  *
  * @param item the damage item
+ * @param type is this incoming or outdoing damage
  * @param total the chart item
  */
 const toMeterItem = (
@@ -114,7 +115,7 @@ const toMeterItem = (
 ): MeterItem => ({
     entity: item.entity,
     displayName: item.name,
-    link: `character/${item.index}`,
+    link: `character/${item.index}?mode=${type === `outgoing` ? `damage-done` : `damage-taken`}`,
     index: item.index,
     value: item.damage,
     perSecond: item.dps,

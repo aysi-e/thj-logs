@@ -320,7 +320,7 @@ const TrashEncounterGroup = ({ encounters }: { encounters: Encounter[] }) => (
             }
 
             return (
-                <Link to={encounter.id} key={encounter.id}>
+                <Link to={`${encounter.id}?mode=damage-done`} key={encounter.id}>
                     <TrashEncounterListItem>
                         <ListItemTime>
                             {DateTime.fromMillis(encounter.start).toLocaleString(

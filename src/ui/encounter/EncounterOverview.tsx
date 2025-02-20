@@ -1,11 +1,13 @@
 import { Encounter, toDPSData } from '@aysi-e/thj-parser-lib';
 import { observer } from 'mobx-react';
-import { partition, values, zipWith } from 'lodash';
+import { isEmpty, map, partition, size, values, zipWith } from 'lodash';
 import styled from 'styled-components';
 import theme from '../../theme.tsx';
-import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Duration } from 'luxon';
 import { shortenNumber } from '../../util/numbers.ts';
+import { UI_WARNING, UIIcon } from '../Icon.tsx';
+import { Link } from 'react-router-dom';
 
 /**
  * Props accepted by the EncounterOverview component.
@@ -79,21 +81,36 @@ const EncounterOverview = observer(({ encounter }: Props) => {
                     </LineChart>
                 </ResponsiveContainer>
             </OverviewGraphContainer>
+            <EncounterWarnings encounter={encounter} />
             <EntityContainer>
                 <ContentContainer>
                     <Header>allies</Header>
                     <EntityItems>
-                        {friends.map((it) => (
-                            <EntityItemContainer key={it.id}>{it.name}</EntityItemContainer>
-                        ))}
+                        {friends.map((it) => {
+                            const index = values(encounter.entities).indexOf(it);
+                            return (
+                                <Link to={`character/${index}?mode=overview`} key={it.id}>
+                                    <EntityItemContainer>
+                                        <div>{it.name}</div>
+                                    </EntityItemContainer>
+                                </Link>
+                            );
+                        })}
                     </EntityItems>
                 </ContentContainer>
                 <ContentContainer>
                     <Header>enemies</Header>
                     <EntityItems>
-                        {enemies.map((it) => (
-                            <EntityItemContainer key={it.id}>{it.name}</EntityItemContainer>
-                        ))}
+                        {enemies.map((it) => {
+                            const index = values(encounter.entities).indexOf(it);
+                            return (
+                                <Link to={`character/${index}?mode=overview`} key={it.id}>
+                                    <EntityItemContainer>
+                                        <div>{it.name}</div>
+                                    </EntityItemContainer>
+                                </Link>
+                            );
+                        })}
                     </EntityItems>
                 </ContentContainer>
             </EntityContainer>
@@ -118,7 +135,7 @@ const Header = styled.div`
 `;
 
 /**
- * A container div for the character detail timeline.
+ * A container div for the encounter overview timeline graph.
  */
 const OverviewGraphContainer = styled.div`
     height: 300px;
@@ -139,7 +156,6 @@ const EntityContainer = styled.div`
  */
 const ContentContainer = styled.div`
     margin-top: 8px;
-    height: 100px;
     width: calc(50% - 4px);
     border: ${theme.color.secondary} 1px solid;
     background-color: ${theme.color.darkerBackground};
@@ -147,8 +163,59 @@ const ContentContainer = styled.div`
 
 const EntityItems = styled.div`
     display: flex;
+    padding: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
 `;
 
 const EntityItemContainer = styled.div`
     padding: 8px;
+    border: ${theme.color.secondary} 1px solid;
+    background-color: ${theme.color.darkerBackground};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    &:active {
+        background: rgba(0, 0, 0, 0.25);
+    }
+`;
+
+const EncounterWarnings = ({ encounter }: Props) => {
+    if (isEmpty(encounter.warnings)) return <></>;
+    const title = `${size(encounter.warnings)} ${size(encounter.warnings) === 1 ? `warning` : `warnings`}`;
+    return (
+        <EncounterWarningContainer>
+            {map(encounter.warnings, (value, key) => (
+                <EncounterWarningItem key={key}>
+                    <UIIcon height={15} width={15} path={UI_WARNING} />
+                    <span>
+                        warning: {value.message} ({value.count}{' '}
+                        {value.count === 1 ? `time` : `times`})
+                    </span>
+                </EncounterWarningItem>
+            ))}
+        </EncounterWarningContainer>
+    );
+};
+
+const EncounterWarningContainer = styled.div`
+    margin-top: 8px;
+    width: 100%;
+`;
+const EncounterWarningItem = styled.div`
+    background-color: #655d3e;
+    color: ${theme.color.white};
+    font-family: ${theme.font.header};
+    border: ${theme.color.secondary} 1px solid;
+    display: flex;
+    padding: 8px;
+    gap: 8px;
+    text-decoration: underline dotted;
+    cursor: pointer;
 `;

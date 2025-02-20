@@ -2,20 +2,10 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
 import { Encounter, toDPSData, Entity } from '@aysi-e/thj-parser-lib';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { values } from 'lodash';
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { Duration } from 'luxon';
-import { shortenNumber } from '../../util/numbers.ts';
-import {
-    DetailedIncomingDamageBreakdownChart,
-    DetailedOutgoingDamageBreakdownChart,
-} from '../../ui/encounter/charts/DamageBreakdown.tsx';
-import {
-    DetailedIncomingHealingBreakdownChart,
-    DetailedOutgoingHealingBreakdownChart,
-} from '../../ui/encounter/charts/HealingBreakdown.tsx';
 import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
+import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -30,40 +20,45 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
     if (isNaN(id) || id >= values(encounter.entities).length)
         return <Navigate to={'../..'} relative={`path`} />;
     const entity = values(encounter.entities)[id];
+    const [nav] = useSearchParams();
+    const mode = nav.get('mode');
+    let content;
+    switch (mode) {
+        case 'damage-done':
+            content = (
+                <Content>
+                    <CharacterDamageDone entity={entity} encounter={encounter} />
+                </Content>
+            );
+            break;
+        case 'damage-taken':
+            content = <Content></Content>;
+            break;
+        case 'healing':
+            content = <Content></Content>;
+            break;
+        case 'deaths':
+            content = <Content></Content>;
+            break;
+        case 'events':
+            content = <Content></Content>;
+            break;
+        default:
+            content = <Content></Content>;
+            break;
+    }
+
     return (
         <Container>
             <Header>
+                <ButtonContainer to={`/encounter/${encounter.id}`}>
+                    <UIIcon path={UI_CANCEL} height={18} width={18} />
+                </ButtonContainer>
                 <HeaderText>
                     showing character details for <strong>{entity.name}</strong>
                 </HeaderText>
-
-                <ButtonContainer to={`/encounter/${encounter.id}`}>
-                    <UIIcon path={UI_CANCEL} height={24} width={24} />
-                </ButtonContainer>
             </Header>
-            <ContentContainer>
-                <Content>
-                    <CharacterDamageTimeline entity={entity} encounter={encounter} />
-                    <BreakdownContainer>
-                        <DetailedOutgoingDamageBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedIncomingDamageBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedOutgoingHealingBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedIncomingHealingBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                    </BreakdownContainer>
-                </Content>
-            </ContentContainer>
+            <ContentContainer>{content}</ContentContainer>
         </Container>
     );
 });
@@ -98,14 +93,14 @@ const Header = styled.div`
     font-family: ${theme.font.header};
     border-bottom: 1px solid ${theme.color.secondary};
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
 `;
 
 /**
  * Styled div for header text.
  */
 const HeaderText = styled.div`
-    padding: 8px;
+    padding: 8px 0;
 `;
 
 /**
@@ -121,60 +116,6 @@ const HeaderTime = styled.span`
 const ColoredHeaderText = styled.span<{ $failed: boolean }>`
     font-weight: bold;
     color: ${(props) => (props.$failed ? theme.color.error : theme.color.success)};
-`;
-
-/**
- * A placeholder component for the character damage timeline.
- *
- * @param entity the entity
- * @param encounter the encounter
- * @constructor
- */
-const CharacterDamageTimeline = ({
-    entity,
-    encounter,
-}: {
-    entity: Entity;
-    encounter: Encounter;
-}) => {
-    const data = toDPSData(encounter.timeline, undefined, undefined, [entity.id]);
-    return (
-        <EncounterDamageGraphContainer>
-            <Header>
-                <HeaderText>damage per second dealt by {entity.name}</HeaderText>
-            </Header>
-            <ResponsiveContainer width='100%' height={270}>
-                <LineChart
-                    data={data}
-                    margin={{
-                        top: 16,
-                        right: 12,
-                        left: -4,
-                        bottom: 0,
-                    }}
-                >
-                    <XAxis
-                        dataKey='time'
-                        interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
-                        tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
-                    />
-                    <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                    <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
-                </LineChart>
-            </ResponsiveContainer>
-        </EncounterDamageGraphContainer>
-    );
-};
-
-/**
- * A container div for the character detail timeline.
- */
-const EncounterDamageGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
 `;
 
 /**
@@ -203,8 +144,8 @@ const BreakdownContainer = styled.div`
  */
 const ButtonContainer = styled(Link)`
     display: flex;
-
-    width: 46px;
+    padding: 0 8px;
+    width: 18px;
 
     justify-content: center;
     align-items: center;

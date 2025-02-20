@@ -22,6 +22,9 @@ import {
 } from '../../ui/encounter/charts/HealingByCharacter.tsx';
 import { SelectButton } from '../../ui/SelectButton.tsx';
 import EncounterOverview from '../../ui/encounter/EncounterOverview.tsx';
+import EncounterDamageDone from '../../ui/encounter/EncounterDamageDone.tsx';
+import EncounterDamageTaken from '../../ui/encounter/EncounterDamageTaken.tsx';
+import EncounterHealing from '../../ui/encounter/EncounterHealing.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -39,23 +42,34 @@ const EncounterDetailPage = observer(() => {
     const mode = nav.get('mode');
     const encounter = log.encounters[id];
 
-    let content = (
-        <Content>
-            <EncounterDamageGraph encounter={encounter} />
-            <EncounterSummary encounter={encounter} />
-        </Content>
-    );
-
+    let content;
     switch (mode) {
         case 'damage-done':
+            content = (
+                <Content>
+                    <EncounterDamageDone encounter={encounter} />
+                </Content>
+            );
             break;
         case 'damage-taken':
+            content = (
+                <Content>
+                    <EncounterDamageTaken encounter={encounter} />
+                </Content>
+            );
             break;
         case 'healing':
+            content = (
+                <Content>
+                    <EncounterHealing encounter={encounter} />
+                </Content>
+            );
             break;
         case 'deaths':
+            content = <Content></Content>;
             break;
         case 'events':
+            content = <Content></Content>;
             break;
         default:
             content = (
@@ -172,7 +186,7 @@ const HeaderWarning = styled.div`
     align-items: center;
     display: flex;
     cursor: pointer;
-    margin-left: 10px;
+    padding: 0 8px;
     z-index: 1;
 `;
 

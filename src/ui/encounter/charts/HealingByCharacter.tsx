@@ -97,7 +97,7 @@ const toMeterItem = (
 ): MeterItem => ({
     entity: item.entity,
     displayName: item.name,
-    link: `character/${item.index}`,
+    link: `character/${item.index}?mode=healing`,
     index: item.index,
     value: item.healing,
     perSecond: item.hps,
