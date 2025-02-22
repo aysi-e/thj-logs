@@ -7,6 +7,7 @@ import { IconSelectButton } from '../ui/SelectButton.tsx';
 import { UI_UPLOAD } from '../ui/Icon.tsx';
 import { runInAction } from 'mobx';
 import { Navigate } from 'react-router-dom';
+import { Box } from '../ui/Common.tsx';
 
 /**
  * The home page.
@@ -84,8 +85,7 @@ const HomePage = observer(() => {
     return (
         <Container>
             <Content>
-                <TextBox>
-                    <Header>thj log parser (local)</Header>
+                <Box header={<HeaderText>thj log parser (local)</HeaderText>}>
                     <ContentText>
                         <div>
                             drag and drop a log file to view details about your combat encounters
@@ -96,7 +96,7 @@ const HomePage = observer(() => {
                             browser session
                         </div>
                     </ContentText>
-                </TextBox>
+                </Box>
                 {upload}
             </Content>
             <Footer>
@@ -135,29 +135,21 @@ const Content = styled.div`
     max-width: 600px;
 `;
 
-const TextBox = styled.div`
-    border: 1px solid ${theme.color.secondary};
-`;
-
 /**
  * A styled div for the text content.
  */
 const ContentText = styled.div`
-    background: ${theme.color.darkerGrey};
-    color: ${theme.color.white};
     padding: 16px;
 `;
 
 /**
  * A styled div for header text.
  */
-const Header = styled.div`
-    background: ${theme.color.darkerBackground};
-    color: ${theme.color.white};
+const HeaderText = styled.div`
+    width: calc(100% - 16px);
+    padding: 8px;
     font-size: 1.25em;
     text-align: center;
-    padding: 8px;
-    border-bottom: 1px solid ${theme.color.secondary};
 `;
 
 /**
@@ -171,13 +163,6 @@ const Footer = styled.div`
     font-size: 1em;
     font-family: ${theme.font.content};
     text-align: right;
-`;
-
-/**
- * Styled span for the footer text (contains the 'credits and attributions' link).
- */
-const FooterText = styled.span`
-    cursor: pointer;
 `;
 
 /**

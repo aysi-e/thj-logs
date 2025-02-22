@@ -5,11 +5,11 @@ import styled from 'styled-components';
 import theme from '../../theme.tsx';
 import { shortenNumber } from '../../util/numbers.ts';
 import { Duration } from 'luxon';
-import { DetailedOutgoingDamageBreakdownChart } from './charts/DamageBreakdown.tsx';
-import { DamageTakenFromTargetChart } from './charts/DamageByCharacter.tsx';
+import { DetailedIncomingDamageBreakdownChart } from './charts/DamageBreakdown.tsx';
+import { DamageTakenByTargetChart } from './charts/DamageByCharacter.tsx';
 
 /**
- * Props accepted by the CharacterDamageDone component.
+ * Props accepted by the CharacterDamageTaken component.
  */
 type Props = {
     encounter: Encounter;
@@ -19,21 +19,21 @@ type Props = {
 /**
  * Component which displays overview and summary data for an encounter.
  */
-const CharacterDamageDone = observer(({ encounter, entity }: Props) => {
+const CharacterDamageTaken = observer(({ encounter, entity }: Props) => {
     return (
         <>
             <CharacterDamageTimeline entity={entity} encounter={encounter} />
             <EncounterSummaryContainer>
-                <DetailedOutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+                <DetailedIncomingDamageBreakdownChart encounter={encounter} entity={entity} />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
-                <DamageTakenFromTargetChart encounter={encounter} targetId={entity.id} />
+                <DamageTakenByTargetChart encounter={encounter} targetId={entity.id} />
             </EncounterSummaryContainer>
         </>
     );
 });
 
-export default CharacterDamageDone;
+export default CharacterDamageTaken;
 
 /**
  * A container div for the encounter damage done charts.
@@ -59,11 +59,11 @@ const CharacterDamageTimeline = ({
     entity: Entity;
     encounter: Encounter;
 }) => {
-    const data = toDPSData(encounter.timeline, undefined, undefined, [entity.id]);
+    const data = toDPSData(encounter.timeline, undefined, undefined, undefined, [entity.id]);
     return (
         <EncounterDamageGraphContainer>
             <DamageTimelineHeader>
-                <HeaderText>damage per second dealt by {entity.name}</HeaderText>
+                <HeaderText>damage per second taken by {entity.name}</HeaderText>
             </DamageTimelineHeader>
             <ResponsiveContainer width='100%' height={270}>
                 <LineChart
@@ -81,7 +81,7 @@ const CharacterDamageTimeline = ({
                         tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
                     />
                     <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                    <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
+                    <Line type='monotone' dataKey='dps' stroke={theme.color.error} dot={false} />
                     <Tooltip
                         labelFormatter={(label) =>
                             Duration.fromMillis(label * 1000).toFormat(`m:ss`)

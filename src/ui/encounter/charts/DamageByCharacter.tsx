@@ -3,8 +3,9 @@ import { shortenNumber } from '../../../util/numbers.ts';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
 import { Encounter, UNKNOWN_ID } from '@aysi-e/thj-parser-lib';
 import { Entity } from '@aysi-e/thj-parser-lib';
-import { keys } from 'mobx';
+import { has, keys } from 'mobx';
 import { IncomingDamageBreakdownChart, OutgoingDamageBreakdownChart } from './DamageBreakdown.tsx';
+import encounter from '../../../pages/encounter';
 
 /**
  * Props accepted by damage-by-source charts.
@@ -57,35 +58,49 @@ type DamageEntityItem = {
  * @param entity the entity object
  * @param type incoming or outgoing damage?
  * @param encounter the encounter object
+ * @param targetId if we have a target id filter, only damage involving this target.
  */
 const toDamageEntityItem = (
     entity: Entity,
     type: `incoming` | `outgoing`,
     encounter: Encounter,
+    targetId?: string,
 ) => {
     const ce = entity[type];
     let damage = 0;
 
-    // un-spool the damage shield section
-    values(ce.ds).forEach((dm) => {
-        values(dm).forEach((ds) => {
+    if (targetId) {
+        values(ce.ds[targetId]).forEach((ds) => {
             damage += ds.total;
         });
-    });
-
-    // un-spool the melee damage section
-    values(ce.melee).forEach((mm) => {
-        values(mm).forEach((melee) => {
+        values(ce.melee[targetId]).forEach((melee) => {
             damage += melee.total;
         });
-    });
-
-    // un-spool the spell damage section
-    values(ce.spell).forEach((sm) => {
-        values(sm).forEach((spell) => {
+        values(ce.spell[targetId]).forEach((spell) => {
             damage += spell.total;
         });
-    });
+    } else {
+        // un-spool the damage shield section
+        values(ce.ds).forEach((dm) => {
+            values(dm).forEach((ds) => {
+                damage += ds.total;
+            });
+        });
+
+        // un-spool the melee damage section
+        values(ce.melee).forEach((mm) => {
+            values(mm).forEach((melee) => {
+                damage += melee.total;
+            });
+        });
+
+        // un-spool the spell damage section
+        values(ce.spell).forEach((sm) => {
+            values(sm).forEach((spell) => {
+                damage += spell.total;
+            });
+        });
+    }
 
     let name = entity.name;
     if (name && entity.owner) {
@@ -107,15 +122,17 @@ const toDamageEntityItem = (
  * @param item the damage item
  * @param type is this incoming or outdoing damage
  * @param total the chart item
+ * @param encounterId the encounter id
  */
 const toMeterItem = (
     item: DamageEntityItem,
     type: `incoming` | `outgoing`,
     total: number,
+    encounterId: string,
 ): MeterItem => ({
     entity: item.entity,
     displayName: item.name,
-    link: `character/${item.index}?mode=${type === `outgoing` ? `damage-done` : `damage-taken`}`,
+    link: `/encounter/${encounterId}/character/${item.index}?mode=${type === `outgoing` ? `damage-done` : `damage-taken`}`,
     index: item.index,
     value: item.damage,
     perSecond: item.dps,
@@ -126,12 +143,22 @@ const toMeterItem = (
 /**
  * Additional props required by the DamageByCharacterChart component.
  */
-type ChartProps = { columns: MeterColumn[]; type: `incoming` | `outgoing` };
+type ChartProps = {
+    columns: MeterColumn[];
+    type: `incoming` | `outgoing`;
+    targetId?: string;
+};
 
 /**
  * An encounter chart which displays data based on damage done during an encounter.
  */
-const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & ChartProps) => {
+const DamageByCharacterChart = ({
+    encounter,
+    entities,
+    type,
+    columns,
+    targetId,
+}: Props & ChartProps) => {
     if (entities.length === 0) {
         // todo: empty chart.
         return <></>;
@@ -140,9 +167,9 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
     if (entities.length === 1) {
         const entity = entities[0];
         return type === `outgoing` ? (
-            <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} />
+            <OutgoingDamageBreakdownChart encounter={encounter} entity={entity} link />
         ) : (
-            <IncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+            <IncomingDamageBreakdownChart encounter={encounter} entity={entity} link />
         );
     }
 
@@ -156,7 +183,7 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
         total: number;
     }>(
         (acc, val) => {
-            const item = toDamageEntityItem(val, type, encounter);
+            const item = toDamageEntityItem(val, type, encounter, targetId);
             acc.items.push(item);
             if (item.entity.id !== UNKNOWN_ID) {
                 // don't include unknown entities as allies or enemies
@@ -174,17 +201,23 @@ const DamageByCharacterChart = ({ encounter, entities, type, columns }: Props & 
         },
     );
 
-    if (relation.allies) {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`} by allies`;
+    if (targetId) {
+        if (type === `outgoing`) {
+            title = `damage taken by ${encounter.entities[targetId].name} by target`;
+        } else {
+            title = `damage dealt by ${encounter.entities[targetId].name} by target`;
+        }
+    } else if (relation.allies) {
+        title = `damage ${type === `incoming` ? `taken` : `dealt`} by allies${targetId ? ` from ${encounter.entities[targetId].name}` : ``}`;
     } else if (relation.enemies) {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`} by enemies`;
+        title = `damage ${type === `incoming` ? `taken` : `dealt`} by enemies${targetId ? ` from ${encounter.entities[targetId].name}` : ``}`;
     } else {
-        title = `damage ${type === `incoming` ? `taken` : `dealt`}`;
+        title = `damage ${type === `incoming` ? `taken` : `dealt`}${targetId ? ` from ${encounter.entities[targetId].name}` : ``}`;
     }
 
     items = relation.items
         .filter((it) => it.damage > 0)
-        .map((item) => toMeterItem(item, type, relation.total));
+        .map((item) => toMeterItem(item, type, relation.total, encounter.id));
 
     return <DamageMeter title={title} items={items} columns={columns} header footer />;
 };
@@ -236,3 +269,57 @@ export const DamageTakenChart = ({ encounter, entities }: Props) => (
         columns={OUTGOING_DAMAGE_METER_COLUMNS}
     />
 );
+
+/**
+ * An encounter chart which displays data based on damage taken during an encounter.
+ */
+export const DamageTakenFromTargetChart = ({
+    encounter,
+    targetId,
+}: {
+    encounter: Encounter;
+    targetId: string;
+}) => {
+    const entities = values(encounter.entities).filter(
+        (it) =>
+            has(it.incoming.melee, targetId) ||
+            has(it.incoming.ds, targetId) ||
+            has(it.incoming.spell, targetId),
+    );
+    return (
+        <DamageByCharacterChart
+            encounter={encounter}
+            entities={entities}
+            targetId={targetId}
+            type={`incoming`}
+            columns={OUTGOING_DAMAGE_METER_COLUMNS}
+        />
+    );
+};
+
+/**
+ * An encounter chart which displays data based on damage taken during an encounter.
+ */
+export const DamageTakenByTargetChart = ({
+    encounter,
+    targetId,
+}: {
+    encounter: Encounter;
+    targetId: string;
+}) => {
+    const entities = values(encounter.entities).filter(
+        (it) =>
+            has(it.outgoing.melee, targetId) ||
+            has(it.outgoing.ds, targetId) ||
+            has(it.outgoing.spell, targetId),
+    );
+    return (
+        <DamageByCharacterChart
+            encounter={encounter}
+            entities={entities}
+            targetId={targetId}
+            type={`outgoing`}
+            columns={OUTGOING_DAMAGE_METER_COLUMNS}
+        />
+    );
+};

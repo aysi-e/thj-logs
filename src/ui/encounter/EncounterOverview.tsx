@@ -207,6 +207,9 @@ const EncounterWarnings = ({ encounter }: Props) => {
 const EncounterWarningContainer = styled.div`
     margin-top: 8px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 `;
 const EncounterWarningItem = styled.div`
     background-color: #655d3e;

@@ -4,27 +4,18 @@ import { LogContext } from '../../state/log.ts';
 import { Link, Navigate, Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { map, partition, size, values } from 'lodash';
+import { map, size, values } from 'lodash';
 import { DateTime, Duration } from 'luxon';
-import { Encounter, toDPSData } from '@aysi-e/thj-parser-lib';
+import { Encounter } from '@aysi-e/thj-parser-lib';
 import CharacterDetailPage from './characterdetail.tsx';
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { shortenNumber } from '../../util/numbers.ts';
 import { UI_CANCEL, UI_WARNING, UIIcon } from '../../ui/Icon.tsx';
 import Tooltip, { BasicTooltip } from '../../ui/Tooltip.tsx';
-import {
-    DamageDealtChart,
-    DamageTakenChart,
-} from '../../ui/encounter/charts/DamageByCharacter.tsx';
-import {
-    HealingDoneChart,
-    HealingReceivedChart,
-} from '../../ui/encounter/charts/HealingByCharacter.tsx';
-import { SelectButton } from '../../ui/SelectButton.tsx';
 import EncounterOverview from '../../ui/encounter/EncounterOverview.tsx';
 import EncounterDamageDone from '../../ui/encounter/EncounterDamageDone.tsx';
 import EncounterDamageTaken from '../../ui/encounter/EncounterDamageTaken.tsx';
 import EncounterHealing from '../../ui/encounter/EncounterHealing.tsx';
+import { Header } from '../../ui/Common.tsx';
+import EncounterNav from '../../ui/encounter/EncounterNav.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -90,7 +81,7 @@ const EncounterDetailPage = observer(() => {
 
     return (
         <Container>
-            <Header>
+            <DetailHeader background={`secondary`}>
                 <HeaderContent>
                     <EncounterWarnings encounter={encounter} />
                     <Link to={`/encounter/${id}${mode ? `?mode=${mode}` : ``}`}>
@@ -119,8 +110,8 @@ const EncounterDetailPage = observer(() => {
                 <ButtonContainer to={`/encounter`}>
                     <UIIcon path={UI_CANCEL} height={24} width={24} />
                 </ButtonContainer>
-            </Header>
-            <EncounterNav />
+            </DetailHeader>
+            <EncounterNav encounter={encounter} />
             <ContentContainer>
                 <Routes>
                     <Route
@@ -147,13 +138,7 @@ const Container = styled.div`
 /**
  * A header component for the encounter detail page.
  */
-const Header = styled.div`
-    background-color: ${theme.color.darkerGrey};
-    width: 100%;
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
+const DetailHeader = styled(Header)`
     justify-content: space-between;
 `;
 
@@ -216,96 +201,6 @@ const Content = styled.div`
 
     color: ${theme.color.white};
     font-family: ${theme.font.header};
-`;
-
-/**
- * A placeholder component for the encounter damage timeline.
- *
- * @param encounter the encounter
- * @constructor
- */
-const EncounterDamageGraph = ({ encounter }: { encounter: Encounter }) => {
-    const [enemies, friends] = partition(values(encounter.entities), (it) => it.isEnemy);
-    const data = toDPSData(
-        encounter.timeline,
-        undefined,
-        undefined,
-        friends.map((it) => it.id),
-    );
-    return (
-        <EncounterDamageGraphContainer>
-            <Header>
-                <HeaderText>damage per second dealt by allies</HeaderText>
-            </Header>
-            <ResponsiveContainer width='100%' height={270}>
-                <LineChart
-                    data={data}
-                    margin={{
-                        top: 16,
-                        right: 12,
-                        left: -8,
-                        bottom: 0,
-                    }}
-                >
-                    <XAxis
-                        dataKey='time'
-                        interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
-                        tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
-                    />
-                    <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                    <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
-                </LineChart>
-            </ResponsiveContainer>
-        </EncounterDamageGraphContainer>
-    );
-};
-
-/**
- * A container div for the encounter damage timeline.
- */
-const EncounterDamageGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
-`;
-
-/**
- * An encounter summary component which formats and displays damage charts for an encounter.
- */
-const EncounterSummary = ({ encounter }: { encounter: Encounter }) => {
-    const [enemies, friends] = partition(values(encounter.entities), (it) => it.isEnemy);
-    return (
-        <>
-            <EncounterSummaryContainer>
-                <DamageDealtChart encounter={encounter} entities={friends} />
-                <DamageTakenChart encounter={encounter} entities={friends} />
-            </EncounterSummaryContainer>
-            <EncounterSummaryContainer>
-                <HealingDoneChart encounter={encounter} entities={friends} />
-                <HealingReceivedChart encounter={encounter} entities={friends} />
-            </EncounterSummaryContainer>
-            <EncounterSummaryContainer>
-                <DamageDealtChart encounter={encounter} entities={enemies} />
-                <DamageTakenChart encounter={encounter} entities={enemies} />
-            </EncounterSummaryContainer>
-            <EncounterSummaryContainer>
-                <HealingDoneChart encounter={encounter} entities={enemies} />
-                <HealingReceivedChart encounter={encounter} entities={enemies} />
-            </EncounterSummaryContainer>
-        </>
-    );
-};
-
-/**
- * A container div for the encounter summary charts.
- */
-const EncounterSummaryContainer = styled.div`
-    margin-top: 8px;
-    display: flex;
-    justify-content: space-around;
-    gap: 8px;
 `;
 
 /**
@@ -408,59 +303,4 @@ const ButtonContainer = styled(Link)`
     &:active {
         background-color: rgba(0, 0, 0, 0.5);
     }
-`;
-
-const EncounterNav = () => {
-    const [nav] = useSearchParams();
-    const mode = nav.get('mode');
-    return (
-        <NavContainer>
-            <Link to={'?mode=overview'}>
-                <NavButton selected={mode === 'overview' || !mode}>overview</NavButton>
-            </Link>
-            <Link to={'?mode=damage-done'}>
-                <NavButton selected={mode === 'damage-done'}>damage done</NavButton>
-            </Link>
-            <Link to={'?mode=damage-taken'}>
-                <NavButton selected={mode === 'damage-taken'}>damage taken</NavButton>
-            </Link>
-            <Link to={'?mode=healing'}>
-                <NavButton selected={mode === 'healing'}>healing</NavButton>
-            </Link>
-            <Link to={'?mode=deaths'}>
-                <NavButton selected={mode === 'deaths'}>deaths</NavButton>
-            </Link>
-            <Link to={'?mode=events'}>
-                <NavButton selected={mode === 'events'}>event log</NavButton>
-            </Link>
-        </NavContainer>
-    );
-};
-
-/**
- * A header component for the encounter detail page.
- */
-const NavContainer = styled.div`
-    background-color: ${theme.color.darkerBackground};
-    width: 100%;
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
-`;
-
-/**
- * A styled header content component for the encounter detail page.
- */
-const NavContent = styled.div`
-    display: flex;
-`;
-
-/**
- * A styled header content component for the encounter detail page.
- */
-const NavButton = styled(SelectButton)`
-    display: flex;
-    font-size: 1em;
-    padding: 12px;
 `;

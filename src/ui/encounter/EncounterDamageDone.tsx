@@ -7,6 +7,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'rec
 import { Duration } from 'luxon';
 import { shortenNumber } from '../../util/numbers.ts';
 import { DamageDealtChart } from './charts/DamageByCharacter.tsx';
+import { OutgoingDamageBreakdownChart } from './charts/DamageBreakdown.tsx';
 
 /**
  * Props accepted by the EncounterDamageDone component.
@@ -83,6 +84,10 @@ const EncounterDamageDone = observer(({ encounter }: Props) => {
             <EncounterSummaryContainer>
                 <DamageDealtChart encounter={encounter} entities={friends} />
                 <DamageDealtChart encounter={encounter} entities={enemies} />
+            </EncounterSummaryContainer>
+            <EncounterSummaryContainer>
+                <OutgoingDamageBreakdownChart encounter={encounter} entity={friends} link />
+                <OutgoingDamageBreakdownChart encounter={encounter} entity={enemies} link />
             </EncounterSummaryContainer>
         </>
     );

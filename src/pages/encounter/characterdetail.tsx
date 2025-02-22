@@ -6,6 +6,7 @@ import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { values } from 'lodash';
 import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
 import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
+import CharacterDamageTaken from '../../ui/encounter/CharacterDamageTaken.tsx';
 
 type Props = {
     encounter: Encounter;
@@ -32,7 +33,11 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
             );
             break;
         case 'damage-taken':
-            content = <Content></Content>;
+            content = (
+                <Content>
+                    <CharacterDamageTaken entity={entity} encounter={encounter} />
+                </Content>
+            );
             break;
         case 'healing':
             content = <Content></Content>;
@@ -51,7 +56,7 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
     return (
         <Container>
             <Header>
-                <ButtonContainer to={`/encounter/${encounter.id}`}>
+                <ButtonContainer to={`/encounter/${encounter.id}${mode ? `?mode=${mode}` : ''}`}>
                     <UIIcon path={UI_CANCEL} height={18} width={18} />
                 </ButtonContainer>
                 <HeaderText>

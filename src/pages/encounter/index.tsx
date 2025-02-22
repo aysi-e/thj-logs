@@ -9,6 +9,7 @@ import { runInAction } from 'mobx';
 import { Encounter } from '@aysi-e/thj-parser-lib';
 import { isArray, last, partition, values } from 'lodash';
 import EncounterDetailPage from './encounterdetail.tsx';
+import { Box, Header } from '../../ui/Common.tsx';
 
 /**
  * The encounter index page component.
@@ -53,7 +54,7 @@ const EncounterIndex = observer(() => {
 
     return (
         <Container>
-            <Header>
+            <IndexHeader>
                 <Link to={`/encounter`}>
                     <HeaderText>
                         <div>
@@ -67,7 +68,7 @@ const EncounterIndex = observer(() => {
                         </div>
                     </HeaderText>
                 </Link>
-            </Header>
+            </IndexHeader>
             <Routes>
                 <Route path={`:id/*`} element={<EncounterDetailPage />} />
                 <Route
@@ -100,15 +101,8 @@ const Container = styled.div`
 /**
  * Header component for the Encounter index page.
  */
-const Header = styled.div`
-    background-color: ${theme.color.darkerBackground};
-    width: 100%;
+const IndexHeader = styled(Header)`
     height: 46px;
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
-    justify-content: space-between;
 `;
 
 /**
@@ -213,10 +207,11 @@ const EncounterZoneList = observer(({ encounters }: Props) => {
     const [bosses, trash] = partition(encounters, (it) => it.isBoss);
     // if (!bosses.length) return <></>
     return (
-        <EncounterZoneListContainer>
-            <EncounterZoneListItem>
-                {`${zone} (${start.toLocaleString(DateTime.DATETIME_SHORT)} to ${end.toLocaleString(DateTime.DATETIME_SHORT)})`}
-            </EncounterZoneListItem>
+        <Box
+            header={
+                <EncounterListHeaderText>{`${zone} (${start.toLocaleString(DateTime.DATETIME_SHORT)} to ${end.toLocaleString(DateTime.DATETIME_SHORT)})`}</EncounterListHeaderText>
+            }
+        >
             {combats.map((it, index) => {
                 if (isArray(it))
                     return (
@@ -224,24 +219,17 @@ const EncounterZoneList = observer(({ encounters }: Props) => {
                     );
                 return <BossEncounterListItem encounter={it} key={it.id} />;
             })}
-        </EncounterZoneListContainer>
+        </Box>
     );
 });
 
 /**
  * Styled container div for an EncounterZoneList
  */
-const EncounterZoneListContainer = styled.div`
-    border: 1px solid ${theme.color.secondary};
-`;
-
-/**
- * An encounter zone list item.
- */
-const EncounterZoneListItem = styled.div`
+const EncounterListHeaderText = styled.div`
+    text-align: center;
     padding: 8px;
-    background-color: ${theme.color.darkerBackground};
-    border-bottom: 1px solid ${theme.color.secondary};
+    width: calc(100% - 16px);
     cursor: pointer;
 `;
 
@@ -256,7 +244,7 @@ const BossEncounterListItem = observer(({ encounter }: { encounter: Encounter })
         .join(', ');
 
     return (
-        <Link to={encounter.id}>
+        <Link to={`${encounter.id}?mode=damage-done`}>
             <ListItemContainer>
                 <ListItemTime>
                     {DateTime.fromMillis(encounter.start).toLocaleString(DateTime.TIME_SIMPLE)}
@@ -342,7 +330,6 @@ const TrashEncounterGroup = ({ encounters }: { encounters: Encounter[] }) => (
  */
 const TrashEncounterGroupContainer = styled.div`
     font-size: 0.9em;
-    background: ${theme.color.darkerGrey};
 `;
 
 /**

@@ -1,7 +1,7 @@
-import { Encounter, Healing } from '@aysi-e/thj-parser-lib';
+import { Encounter, UNKNOWN_ID } from '@aysi-e/thj-parser-lib';
 import { Entity, DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysi-e/thj-parser-lib';
 import DetailChart, { DetailColumn, DetailItem } from './DetailChart.tsx';
-import { round, values } from 'lodash';
+import { isArray, round, values } from 'lodash';
 import { shortenNumber } from '../../../util/numbers.ts';
 import theme from '../../../theme.tsx';
 import styled from 'styled-components';
@@ -19,7 +19,12 @@ type Props = {
     /**
      * The entity that should be used for the chart.
      */
-    entity: Entity;
+    entity: Entity | Entity[];
+
+    /**
+     * Should we include a link to the character page?
+     */
+    link?: boolean;
 };
 
 /**
@@ -50,15 +55,6 @@ type SpellBreakdownItem = {
 };
 
 /**
- * Type representing a healing damage breakdown (compiled healing done to all targets).
- */
-type HealingBreakdownItem = {
-    name: string;
-    type: `heal`;
-    damage: Healing;
-};
-
-/**
  * Convert an entity object into an appropriate data type to use for our breakdown chart.
  *
  * @param entity the entity object
@@ -66,7 +62,7 @@ type HealingBreakdownItem = {
  * @param encounter the encounter object
  */
 const toDamageBreakdownItems = (
-    entity: Entity,
+    entity: Entity[],
     type: `incoming` | `outgoing`,
     encounter: Encounter,
 ): DetailItem[] => {
@@ -75,47 +71,49 @@ const toDamageBreakdownItems = (
         DamageShieldBreakdownItem | MeleeBreakdownItem | SpellBreakdownItem
     > = {};
     let damage = 0;
-    const ce = entity[type];
+    entity.forEach((e) => {
+        const ce = e[type];
 
-    // un-spool the damage shield section
-    values(ce.ds).forEach((dm) => {
-        values(dm).forEach((ds) => {
-            if (!items[`ds-${ds.effect}`])
-                items[`ds-${ds.effect}`] = {
-                    name: `${ds.effect} (damage shield)`,
-                    damage: new DamageShieldDamage(ds.effect, `all`),
-                    type: `ds`,
-                };
-            (items[`ds-${ds.effect}`] as DamageShieldBreakdownItem).damage.addFrom(ds);
-            damage += ds.total;
+        // un-spool the damage shield section
+        values(ce.ds).forEach((dm) => {
+            values(dm).forEach((ds) => {
+                if (!items[`ds-${ds.effect}`])
+                    items[`ds-${ds.effect}`] = {
+                        name: `${ds.effect} (damage shield)`,
+                        damage: new DamageShieldDamage(ds.effect, `all`),
+                        type: `ds`,
+                    };
+                (items[`ds-${ds.effect}`] as DamageShieldBreakdownItem).damage.addFrom(ds);
+                damage += ds.total;
+            });
         });
-    });
 
-    // un-spool the melee damage section
-    values(ce.melee).forEach((mm) => {
-        values(mm).forEach((melee) => {
-            if (!items[`melee-${melee.type}`])
-                items[`melee-${melee.type}`] = {
-                    name: melee.type,
-                    damage: new MeleeDamage(melee.type, `all`),
-                    type: `melee`,
-                };
-            (items[`melee-${melee.type}`] as MeleeBreakdownItem).damage.addFrom(melee);
-            damage += melee.total;
+        // un-spool the melee damage section
+        values(ce.melee).forEach((mm) => {
+            values(mm).forEach((melee) => {
+                if (!items[`melee-${melee.type}`])
+                    items[`melee-${melee.type}`] = {
+                        name: melee.type,
+                        damage: new MeleeDamage(melee.type, `all`),
+                        type: `melee`,
+                    };
+                (items[`melee-${melee.type}`] as MeleeBreakdownItem).damage.addFrom(melee);
+                damage += melee.total;
+            });
         });
-    });
 
-    // un-spool the spell damage section
-    values(ce.spell).forEach((sm) => {
-        values(sm).forEach((spell) => {
-            if (!items[`spell-${spell.name}`])
-                items[`spell-${spell.name}`] = {
-                    name: spell.name,
-                    damage: new SpellDamage(spell.name, `all`),
-                    type: `spell`,
-                };
-            (items[`spell-${spell.name}`] as SpellBreakdownItem).damage.addFrom(spell);
-            damage += spell.total;
+        // un-spool the spell damage section
+        values(ce.spell).forEach((sm) => {
+            values(sm).forEach((spell) => {
+                if (!items[`spell-${spell.name}`])
+                    items[`spell-${spell.name}`] = {
+                        name: spell.name,
+                        damage: new SpellDamage(spell.name, `all`),
+                        type: `spell`,
+                    };
+                (items[`spell-${spell.name}`] as SpellBreakdownItem).damage.addFrom(spell);
+                damage += spell.total;
+            });
         });
     });
 
@@ -221,25 +219,79 @@ const INCOMING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
-export const IncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const link = values(encounter.entities).indexOf(entity);
-    const title = (
-        <div>
-            {`damage taken by `}
-            <HeaderLink>
-                <Link to={`character/${link}`}>{entity.name}</Link>
-            </HeaderLink>
-        </div>
-    );
-    const items = toDamageBreakdownItems(entity, `incoming`, encounter);
+const BreakdownChart = ({
+    encounter,
+    entity,
+    direction,
+    columns,
+    link,
+}: Props & { direction: `incoming` | `outgoing`; columns: DetailColumn[] }) => {
+    let e = entity;
+    if (isArray(e)) {
+        if (e.length === 0) {
+            return <></>;
+        }
+        if (e.length === 1) {
+            e = e[0];
+        } else {
+            // multiple entities
+            const items = toDamageBreakdownItems(e, direction, encounter);
+            const relation = e.reduce<{
+                allies: boolean;
+                enemies: boolean;
+            }>(
+                (acc, val) => {
+                    if (val.id !== UNKNOWN_ID) {
+                        // don't include unknown entities as allies or enemies
+                        acc.allies = acc.allies && !val.isEnemy;
+                        acc.enemies = acc.enemies && !!val.isEnemy;
+                    }
+                    return acc;
+                },
+                {
+                    allies: true,
+                    enemies: true,
+                },
+            );
 
+            const title = (
+                <div>{`damage ${direction === `incoming` ? `taken` : `dealt`} by${relation.allies ? ` allies by` : relation.enemies ? ` enemies by` : ``} type`}</div>
+            );
+            return <DetailChart title={title} items={items} columns={columns} header footer />;
+        }
+    }
+
+    let title;
+    if (link) {
+        const index = values(encounter.entities).indexOf(e);
+        title = (
+            <div>
+                {`damage ${direction === `incoming` ? `taken` : `dealt`} by `}
+                <HeaderLink>
+                    <Link to={`character/${index}`}>{e.name}</Link>
+                </HeaderLink>
+            </div>
+        );
+    } else {
+        title = <div>{`damage ${direction === `incoming` ? `taken` : `dealt`} by ${e.name}`}</div>;
+    }
+
+    const items = toDamageBreakdownItems([e], direction, encounter);
+
+    return <DetailChart title={title} items={items} columns={columns} header footer />;
+};
+
+/**
+ * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
+ */
+export const IncomingDamageBreakdownChart = ({ encounter, entity, link }: Props) => {
     return (
-        <DetailChart
-            title={title}
-            items={items}
+        <BreakdownChart
+            encounter={encounter}
+            entity={entity}
             columns={INCOMING_DAMAGE_BASIC_COLUMNS}
-            header
-            footer
+            direction={`incoming`}
+            link={link}
         />
     );
 };
@@ -247,16 +299,14 @@ export const IncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
-export const DetailedIncomingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const title = `damage taken by ${entity.name}`;
-    const items = toDamageBreakdownItems(entity, `incoming`, encounter);
+export const DetailedIncomingDamageBreakdownChart = ({ encounter, entity, link }: Props) => {
     return (
-        <DetailChart
-            title={title}
-            items={items}
+        <BreakdownChart
+            encounter={encounter}
+            entity={entity}
             columns={INCOMING_DAMAGE_DETAILED_COLUMNS}
-            header
-            footer
+            direction={`incoming`}
+            link={link}
         />
     );
 };
@@ -343,26 +393,14 @@ const OUTGOING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
-export const OutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const link = values(encounter.entities).indexOf(entity);
-    const title = (
-        <div>
-            {`damage dealt by `}
-            <HeaderLink>
-                <Link to={`character/${link}`}>{entity.name}</Link>
-            </HeaderLink>
-        </div>
-    );
-
-    const items = toDamageBreakdownItems(entity, `outgoing`, encounter);
-
+export const OutgoingDamageBreakdownChart = ({ encounter, entity, link }: Props) => {
     return (
-        <DetailChart
-            title={title}
-            items={items}
+        <BreakdownChart
+            encounter={encounter}
+            entity={entity}
             columns={OUTGOING_DAMAGE_BASIC_COLUMNS}
-            header
-            footer
+            direction={`outgoing`}
+            link={link}
         />
     );
 };
@@ -390,16 +428,14 @@ const HeaderLink = styled.span`
 /**
  * An encounter chart which displays data based on damage done during an encounter, broken down by damage type.
  */
-export const DetailedOutgoingDamageBreakdownChart = ({ encounter, entity }: Props) => {
-    const title = `damage dealt by ${entity.name}`;
-    const items = toDamageBreakdownItems(entity, `outgoing`, encounter);
+export const DetailedOutgoingDamageBreakdownChart = ({ encounter, entity, link }: Props) => {
     return (
-        <DetailChart
-            header
-            footer
-            title={title}
-            items={items}
+        <BreakdownChart
+            encounter={encounter}
+            entity={entity}
             columns={OUTGOING_DAMAGE_DETAILED_COLUMNS}
+            direction={`outgoing`}
+            link={link}
         />
     );
 };
