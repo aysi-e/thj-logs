@@ -5,16 +5,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Encounter } from '@aysi-e/thj-parser-lib';
 
 /**
- * Props accepted by the EncounterNav component.
+ * Component which renders a navigation bar for an encounter.
+ *
+ * @constructor
  */
-type Props = {
-    /**
-     * The current encounter.
-     */
-    encounter: Encounter;
-};
-
-const EncounterNav = ({ encounter }: Props) => {
+const EncounterNav = () => {
     const [nav] = useSearchParams();
     const mode = nav.get('mode');
     return (

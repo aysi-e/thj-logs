@@ -5,7 +5,6 @@ import { useContext } from 'react';
 import { LogContext } from '../../state/log.ts';
 import { DateTime, Duration } from 'luxon';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
-import { runInAction } from 'mobx';
 import { Encounter } from '@aysi-e/thj-parser-lib';
 import { isArray, last, partition, values } from 'lodash';
 import EncounterDetailPage from './encounterdetail.tsx';
@@ -22,16 +21,6 @@ const EncounterIndex = observer(() => {
     const log = useContext(LogContext);
 
     if (log.encounters.length === 0) return <Navigate to={'/'} />;
-
-    const clear = () => {
-        runInAction(() => {
-            log.start = undefined;
-            log.end = undefined;
-            log.progress = undefined;
-            log.loggedBy = undefined;
-            log.encounters = [];
-        });
-    };
 
     const loggedBy = log.loggedBy || 'unknown';
     const start = log.start
