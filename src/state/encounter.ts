@@ -160,6 +160,20 @@ class EncounterState {
             .map((it) => it.name)
             .join(', ');
     }
+
+    /**
+     * Get the timeline for this encounter.
+     */
+    get timeline() {
+        return this.encounter.timeline;
+    }
+
+    /**
+     * Get each character participating in this encounter.
+     */
+    get characters() {
+        return values(this.entities);
+    }
 }
 
 export default EncounterState;
@@ -167,7 +181,7 @@ export default EncounterState;
 /**
  * State class associated with an individual entity for a single encounter.
  */
-class EncounterEntityState {
+export class EncounterEntityState {
     /**
      * A key to use for 'all' data.
      */

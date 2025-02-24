@@ -302,3 +302,36 @@ export const BaseChartFooter = ({ columns, totals }: FooterProps) => {
         </ChartFooter>
     );
 };
+
+/**
+ * Styled container div for a tooltip-sized damage meter.
+ */
+export const TooltipChart = (props: Props) => {
+    return (
+        <TooltipContainer className={props.className}>
+            <TooltipHeader>{props.title}</TooltipHeader>
+            <TooltipContent>{props.children}</TooltipContent>
+        </TooltipContainer>
+    );
+};
+
+const TooltipHeader = styled.div`
+    text-align: center;
+    padding: 4px;
+    border-bottom: 1px solid ${theme.color.secondary};
+    font-size: 0.9em;
+`;
+
+const TooltipContainer = styled.div`
+    background-color: #222;
+    border: 1px solid ${theme.color.secondary};
+    filter: ${theme.style.dropShadow};
+    z-index: 1;
+`;
+
+const TooltipContent = styled.div`
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;

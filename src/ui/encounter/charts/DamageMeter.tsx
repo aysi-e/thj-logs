@@ -8,9 +8,12 @@ import {
     BaseChartHeader,
     DamageItemNumber,
     DamageItemText,
+    TooltipChart,
 } from './Components.tsx';
 import { Link } from 'react-router-dom';
 import { ReactNode } from 'react';
+import { EncounterEntityState } from '../../../state/encounter.ts';
+import WithTooltip from '../../Tooltip.tsx';
 
 /**
  * Type representing an item on a damage meter.
@@ -19,7 +22,7 @@ export type MeterItem = {
     /**
      * The entity to display on a damage meter.
      */
-    entity: Entity;
+    entity: EncounterEntityState | Entity;
 
     /**
      * The name to display for this entity.
@@ -60,6 +63,11 @@ export type MeterItem = {
      * The text color to use for this item.
      */
     color?: string;
+
+    /**
+     * A tooltip to use when hovering over the main 'meter' component for this item.
+     */
+    tooltip?: ReactNode;
 };
 
 /**
@@ -97,6 +105,11 @@ export type MeterColumn = {
      * The width to use for this column.
      */
     width?: number;
+
+    /**
+     * A tooltip to use for this column.
+     */
+    tooltip?: ReactNode;
 };
 
 /**
@@ -132,6 +145,11 @@ type Props = {
      * Should we show a footer with total values?
      */
     footer?: boolean;
+
+    /**
+     * Is this meter being displayed as part of a tooltip?
+     */
+    isTooltip?: boolean;
 };
 
 /**
@@ -156,6 +174,15 @@ const DamageMeter = (props: Props) => {
         )
         .join(` `);
     const items = i.map((it) => {
+        const main = it.tooltip ? (
+            <WithTooltip
+                placement={`bottom-start`}
+                renderTrigger={() => <DamageItemText>{it.displayName}</DamageItemText>}
+                renderTooltip={() => it.tooltip}
+            />
+        ) : (
+            <DamageItemText>{it.displayName}</DamageItemText>
+        );
         const item = (
             <DamageMeterItemContainer
                 key={`${props.title}-chart-${it.entity.id}`}
@@ -165,25 +192,42 @@ const DamageMeter = (props: Props) => {
                 $width={it.percent}
                 $link={!!it.link}
             >
-                <DamageItemText>{it.displayName}</DamageItemText>
+                <FirstItem>{main}</FirstItem>
                 {columns.map(
-                    ({ title, value, format = (v) => v.toString(), total }: MeterColumn) => {
+                    ({
+                        title,
+                        value,
+                        format = (v) => v.toString(),
+                        total,
+                        tooltip,
+                    }: MeterColumn) => {
                         const val = value(it);
-                        if (!val)
-                            return (
+                        let content;
+                        if (!val) {
+                            content = (
                                 <DamageItemNumber
                                     key={`${props.title}-${it.entity.name}-${title}`}
                                 />
                             );
-                        if (total === true) {
-                            if (!totals[title]) totals[title] = 0;
-                            totals[title] += val;
+                        } else {
+                            if (total === true) {
+                                if (!totals[title]) totals[title] = 0;
+                                totals[title] += val;
+                            }
+                            content = (
+                                <DamageItemNumber key={`${props.title}-${it.entity.name}-${title}`}>
+                                    {format(val)}
+                                </DamageItemNumber>
+                            );
                         }
-                        return (
-                            <DamageItemNumber key={`${props.title}-${it.entity.name}-${title}`}>
-                                {format(val)}
-                            </DamageItemNumber>
-                        );
+                        if (tooltip)
+                            return (
+                                <WithTooltip
+                                    renderTrigger={() => content}
+                                    renderTooltip={() => tooltip}
+                                />
+                            );
+                        return content;
                     },
                 )}
             </DamageMeterItemContainer>
@@ -198,13 +242,17 @@ const DamageMeter = (props: Props) => {
         return item;
     });
 
-    return (
-        <BaseChart title={props.title} header={props.header} footer={props.footer}>
-            {props.header && <BaseChartHeader columns={columns} />}
-            {items}
-            {props.footer && <BaseChartFooter columns={columns} totals={totals} />}
-        </BaseChart>
-    );
+    if (!props.isTooltip) {
+        return (
+            <BaseChart title={props.title} header={props.header} footer={props.footer}>
+                {props.header && <BaseChartHeader columns={columns} />}
+                {items}
+                {props.footer && <BaseChartFooter columns={columns} totals={totals} />}
+            </BaseChart>
+        );
+    }
+
+    return <TooltipChart title={props.title}>{items}</TooltipChart>;
 };
 
 export default DamageMeter;
@@ -237,8 +285,11 @@ const DamageMeterItemContainer = styled.div<{
     &:active {
         filter: ${(props) => props.$link && `brightness(0.65)`};
     }
+`;
 
-    :first-child {
-        margin-left: 4px;
-    }
+/**
+ * Styled div that adds a small margin to the first item in a damage meter item container.
+ */
+const FirstItem = styled.div`
+    margin-left: 4px;
 `;

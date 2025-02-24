@@ -3,9 +3,8 @@ import { shortenNumber } from '../../../util/numbers.ts';
 import DamageMeter, { MeterColumn, MeterItem } from './DamageMeter.tsx';
 import { Encounter, UNKNOWN_ID } from '@aysi-e/thj-parser-lib';
 import { Entity } from '@aysi-e/thj-parser-lib';
-import { has, keys } from 'mobx';
+import { has } from 'mobx';
 import { IncomingDamageBreakdownChart, OutgoingDamageBreakdownChart } from './DamageBreakdown.tsx';
-import encounter from '../../../pages/encounter';
 
 /**
  * Props accepted by damage-by-source charts.
@@ -50,70 +49,6 @@ type DamageEntityItem = {
      * The entity index.
      */
     index: number;
-};
-
-/**
- * Convert an entity object into an appropriate data type to use for our damage meter.
- *
- * @param entity the entity object
- * @param type incoming or outgoing damage?
- * @param encounter the encounter object
- * @param targetId if we have a target id filter, only damage involving this target.
- */
-const toDamageEntityItem = (
-    entity: Entity,
-    type: `incoming` | `outgoing`,
-    encounter: Encounter,
-    targetId?: string,
-) => {
-    const ce = entity[type];
-    let damage = 0;
-
-    if (targetId) {
-        values(ce.ds[targetId]).forEach((ds) => {
-            damage += ds.total;
-        });
-        values(ce.melee[targetId]).forEach((melee) => {
-            damage += melee.total;
-        });
-        values(ce.spell[targetId]).forEach((spell) => {
-            damage += spell.total;
-        });
-    } else {
-        // un-spool the damage shield section
-        values(ce.ds).forEach((dm) => {
-            values(dm).forEach((ds) => {
-                damage += ds.total;
-            });
-        });
-
-        // un-spool the melee damage section
-        values(ce.melee).forEach((mm) => {
-            values(mm).forEach((melee) => {
-                damage += melee.total;
-            });
-        });
-
-        // un-spool the spell damage section
-        values(ce.spell).forEach((sm) => {
-            values(sm).forEach((spell) => {
-                damage += spell.total;
-            });
-        });
-    }
-
-    let name = entity.name;
-    if (name && entity.owner) {
-        name = `${name} (${encounter.entities[entity.owner].name || `Unknown`})`;
-    }
-
-    return {
-        entity,
-        name: name || entity.id,
-        damage,
-        dps: (damage / encounter.duration) * 1000,
-        index: keys(encounter.entities).indexOf(entity.id),
-    };
 };
 
 /**
