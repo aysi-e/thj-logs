@@ -34,14 +34,14 @@ const EncounterDetailPage = observer(() => {
         case 'damage-done':
             content = (
                 <Content>
-                    <EncounterDamageDone encounter={encounter} />
+                    <EncounterDamageDone />
                 </Content>
             );
             break;
         case 'damage-taken':
             content = (
                 <Content>
-                    <EncounterDamageTaken encounter={encounter} />
+                    <EncounterDamageTaken />
                 </Content>
             );
             break;
@@ -74,10 +74,7 @@ const EncounterDetailPage = observer(() => {
                 <EncounterNav />
                 <ContentContainer>
                     <Routes>
-                        <Route
-                            path={`character/:id/*`}
-                            element={<CharacterDetailPage encounter={encounter} />}
-                        />
+                        <Route path={`character/:id/*`} element={<CharacterDetailPage />} />
                         <Route index element={content} />
                     </Routes>
                 </ContentContainer>
@@ -101,7 +98,7 @@ const Container = styled.div`
  */
 const ContentContainer = styled(ScrollableContent)`
     width: calc(100% - 8px);
-    height: calc(100% - 32px);
+    height: calc(100% - 32px - 54px);
     overflow-y: scroll;
 `;
 

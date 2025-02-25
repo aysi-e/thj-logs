@@ -8,6 +8,8 @@ import { Duration } from 'luxon';
 import { shortenNumber } from '../../util/numbers.ts';
 import { useEncounter } from '../../state/encounter.ts';
 import { OverallDamageDealtChart } from './charts/ByCharacterChart.tsx';
+import { DamageBySourceChart } from './charts/BreakdownChart.tsx';
+import { EncounterGraph } from './Common.tsx';
 
 /**
  * Component which displays overview and summary data for an encounter.
@@ -16,10 +18,9 @@ const EncounterDamageDone = observer(() => {
     const encounter = useEncounter();
     return (
         <>
-            <OverviewGraphContainer>
-                <Header>damage dealt by allies & enemies</Header>
+            <EncounterGraph title={`damage dealt by allies & enemies`}>
                 <DamageTimelineGraph />
-            </OverviewGraphContainer>
+            </EncounterGraph>
             <EncounterSummaryContainer>
                 <OverallDamageDealtChart
                     title={`damage dealt by allies`}
@@ -28,7 +29,6 @@ const EncounterDamageDone = observer(() => {
                         link: `/encounter/${encounter.id}/character/${item.index}?mode=damage-done`,
                         background: `#4A58A4`,
                     })}
-                    breakdownTooltips
                 />
                 <OverallDamageDealtChart
                     title={`damage dealt by enemies`}
@@ -37,15 +37,20 @@ const EncounterDamageDone = observer(() => {
                         link: `/encounter/${encounter.id}/character/${item.index}?mode=damage-done`,
                         background: `#9c4646`,
                     })}
-                    breakdownTooltips
                 />
             </EncounterSummaryContainer>
-            <EncounterSummaryContainer></EncounterSummaryContainer>
+            <EncounterSummaryContainer>
+                <DamageBySourceChart
+                    title={'damage dealt by allies by source'}
+                    entities={encounter.friends}
+                />
+                <DamageBySourceChart
+                    title={'damage dealt by enemies by source'}
+                    entities={encounter.enemies}
+                />
+            </EncounterSummaryContainer>
         </>
     );
-    //
-    // <OutgoingDamageBreakdownChart encounter={encounter} entity={friends} link />
-    // <OutgoingDamageBreakdownChart encounter={encounter} entity={enemies} link />
 });
 
 export default EncounterDamageDone;
@@ -58,31 +63,6 @@ const EncounterSummaryContainer = styled.div`
     display: flex;
     justify-content: space-around;
     gap: 8px;
-`;
-
-/**
- * A container div for the encounter damage done timeline graph.
- */
-const OverviewGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
-`;
-
-/**
- * A header component for the encounter damage done page.
- */
-const Header = styled.div`
-    background-color: ${theme.color.darkerGrey};
-    width: calc(100% - 16px);
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
-    justify-content: space-between;
-    padding: 8px;
 `;
 
 /**

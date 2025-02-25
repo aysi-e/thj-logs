@@ -1,33 +1,47 @@
-import { Encounter, Entity, toDPSData } from '@aysi-e/thj-parser-lib';
+import { toDPSData } from '@aysi-e/thj-parser-lib';
 import { observer } from 'mobx-react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import styled from 'styled-components';
 import theme from '../../theme.tsx';
 import { shortenNumber } from '../../util/numbers.ts';
 import { Duration } from 'luxon';
-import { DetailedIncomingDamageBreakdownChart } from './charts/DamageBreakdown.tsx';
-import { DamageTakenByTargetChart } from './charts/DamageByCharacter.tsx';
+import { EncounterEntityState, useEncounter } from '../../state/encounter.ts';
+import { EncounterGraph } from './Common.tsx';
+import { DamageBySourceChart } from './charts/BreakdownChart.tsx';
+import { DamageByTargetChart } from './charts/ByCharacterChart.tsx';
+import { DetailColumn } from './charts/DetailChart.tsx';
+import { round } from 'lodash';
 
 /**
  * Props accepted by the CharacterDamageTaken component.
  */
 type Props = {
-    encounter: Encounter;
-    entity: Entity;
+    entity: EncounterEntityState;
 };
 
 /**
  * Component which displays overview and summary data for an encounter.
  */
-const CharacterDamageTaken = observer(({ encounter, entity }: Props) => {
+const CharacterDamageTaken = observer(({ entity }: Props) => {
     return (
         <>
-            <CharacterDamageTimeline entity={entity} encounter={encounter} />
+            <EncounterGraph title={`damage per second dealt by ${entity.name}`}>
+                <CharacterDamageTimeline entity={entity} />
+            </EncounterGraph>
             <EncounterSummaryContainer>
-                <DetailedIncomingDamageBreakdownChart encounter={encounter} entity={entity} />
+                <DamageBySourceChart
+                    title={`damage taken breakdown for ${entity.name}`}
+                    entities={[entity]}
+                    direction={`incoming`}
+                    columns={INCOMING_DAMAGE_DETAILED_COLUMNS}
+                />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
-                <DamageTakenByTargetChart encounter={encounter} targetId={entity.id} />
+                <DamageByTargetChart
+                    title={`damage taken by ${entity.name} by source`}
+                    entity={entity}
+                    direction={`incoming`}
+                />
             </EncounterSummaryContainer>
         </>
     );
@@ -52,72 +66,81 @@ const EncounterSummaryContainer = styled.div`
  * @param encounter the encounter
  * @constructor
  */
-const CharacterDamageTimeline = ({
-    entity,
-    encounter,
-}: {
-    entity: Entity;
-    encounter: Encounter;
-}) => {
+const CharacterDamageTimeline = ({ entity }: { entity: EncounterEntityState }) => {
+    const encounter = useEncounter();
     const data = toDPSData(encounter.timeline, undefined, undefined, undefined, [entity.id]);
     return (
-        <EncounterDamageGraphContainer>
-            <DamageTimelineHeader>
-                <HeaderText>damage per second taken by {entity.name}</HeaderText>
-            </DamageTimelineHeader>
-            <ResponsiveContainer width='100%' height={270}>
-                <LineChart
-                    data={data}
-                    margin={{
-                        top: 16,
-                        right: 12,
-                        left: -4,
-                        bottom: 0,
-                    }}
-                >
-                    <XAxis
-                        dataKey='time'
-                        interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
-                        tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
-                    />
-                    <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                    <Line type='monotone' dataKey='dps' stroke={theme.color.error} dot={false} />
-                    <Tooltip
-                        labelFormatter={(label) =>
-                            Duration.fromMillis(label * 1000).toFormat(`m:ss`)
-                        }
-                        contentStyle={{ background: 'black' }}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
-        </EncounterDamageGraphContainer>
+        <ResponsiveContainer width='100%' height={270}>
+            <LineChart
+                data={data}
+                margin={{
+                    top: 16,
+                    right: 12,
+                    left: -4,
+                    bottom: 0,
+                }}
+            >
+                <XAxis
+                    dataKey='time'
+                    interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
+                    tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
+                />
+                <YAxis tickFormatter={(i) => shortenNumber(i)} />
+                <Line type='monotone' dataKey='dps' stroke={theme.color.error} dot={false} />
+                <Tooltip
+                    labelFormatter={(label) => Duration.fromMillis(label * 1000).toFormat(`m:ss`)}
+                    contentStyle={{ background: 'black' }}
+                />
+            </LineChart>
+        </ResponsiveContainer>
     );
 };
 
-const DamageTimelineHeader = styled.div`
-    background-color: ${theme.color.darkerGrey};
-    width: calc(100% - 16px);
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
-    padding: 0 8px;
-`;
-
 /**
- * A container div for the character detail timeline.
+ * A detailed set of columns for an incoming damage table.
  */
-const EncounterDamageGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
-`;
-
-/**
- * Styled div for header text.
- */
-const HeaderText = styled.div`
-    padding: 8px 0;
-`;
+const INCOMING_DAMAGE_DETAILED_COLUMNS: DetailColumn[] = [
+    {
+        title: `total`,
+        value: (item) => item.damage.total,
+        format: (value: number) => shortenNumber(value),
+        total: true,
+    },
+    {
+        title: `dps`,
+        value: (item) => item.perSecond,
+        format: (value: number) => round(value).toLocaleString(),
+        total: true,
+    },
+    {
+        title: `hits`,
+        value: (item) => item.damage.hits,
+    },
+    {
+        title: `crits`,
+        value: (item) => (item.type !== `ds` ? item.damage.crits : undefined),
+    },
+    {
+        title: `crit %`,
+        value: (item) =>
+            item.type !== `ds`
+                ? item.damage.crits / (item.damage.hits + item.damage.crits)
+                : undefined,
+        format: (value: number) => `${round(value * 100)}%`,
+    },
+    {
+        title: `avoid`,
+        value: (item) => {
+            if (item.type === `ds` || item.type === `heal`) return undefined;
+            return item.damage.avoided();
+        },
+    },
+    {
+        title: `avoid %`,
+        value: (item) => {
+            if (item.type === `ds` || item.type === `heal`) return undefined;
+            return item.damage.avoided() / item.damage.attempts();
+        },
+        format: (value: number) => `${round(value * 100)}%`,
+    },
+];

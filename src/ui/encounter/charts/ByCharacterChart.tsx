@@ -92,7 +92,55 @@ export const OverallDamageDealtChart = (props: Props) => {
     return (
         <DamageMeter
             title={props.title}
-            items={props.entities.map((it) => toMeterItem(it))}
+            items={props.entities.map((it) => toMeterItem(it)).filter((it) => it.value > 0)}
+            columns={columns}
+            header
+            footer
+        />
+    );
+};
+
+/**
+ * A chart that ranks each provided entity according to their overall damage taken during the encounter.
+ *
+ * @param props the props accepted by the overall damage taken chart
+ * @constructor
+ */
+export const OverallDamageTakenChart = (props: Props) => {
+    const encounter = useEncounter();
+
+    // calculate the total damage done for the entities that we're charting.
+    const total = props.entities.reduce((acc, val) => acc + val.damageTaken(), 0);
+
+    // a customize function for the meter items.
+    const customize = props.customize ? props.customize : (e: EncounterEntityState) => ({});
+
+    /**
+     * Given an entity, return a meter item.
+     *
+     * @param entity the entity
+     */
+    const toMeterItem = (entity: EncounterEntityState): MeterItem => {
+        const name = entity.isPet
+            ? `${entity.name} (${entity.owner?.name || `unknown`})`
+            : entity.name;
+        return assign(customize(entity), {
+            entity,
+            value: entity.damageTaken(),
+            displayName: name || `Unknown`,
+            index: entity.index,
+            perSecond: entity.damageTaken() / encounter.duration.as('seconds'),
+            percent: (entity.damageTaken() / total) * 100,
+        });
+    };
+
+    // the columns to use for this chart.
+    const columns = props.columns ? props.columns : DAMAGE_METER_DEFAULT_COLUMNS;
+
+    return (
+        <DamageMeter
+            title={props.title}
+            items={props.entities.map((it) => toMeterItem(it)).filter((it) => it.value > 0)}
             columns={columns}
             header
             footer
@@ -142,17 +190,6 @@ type DamageToTargetProps = {
 };
 
 /**
- * A chart that ranks each provided entity according to their overall damage to the provided target
- * during the encounter.
- *
- * @param props the props accepted by the overall damage dealt chart
- * @constructor
- */
-const DamageTakenByTargetChart = (props: DamageToTargetProps) => {
-    return <div />;
-};
-
-/**
  * Props accepted by the DamageByTargetChart component.
  */
 type DamageByTargetProps = {
@@ -165,6 +202,11 @@ type DamageByTargetProps = {
      * The entity that is dealing damage.
      */
     entity: EncounterEntityState;
+
+    /**
+     * Should we display incoming or outgoing damage?
+     */
+    direction?: `incoming` | `outgoing`;
 
     /**
      * A function that customizes meter items.
@@ -199,10 +241,19 @@ type DamageByTargetProps = {
  * @param props the props accepted by the damage by target chart.
  * @constructor
  */
-const DamageByTargetChart = (props: DamageByTargetProps) => {
+export const DamageByTargetChart = (props: DamageByTargetProps) => {
     const encounter = useEncounter();
+
+    // is this a damage dealt or damage taken chart?
+    const direction = props.direction || `outgoing`;
+
+    // the total damage.
     const total = encounter.characters.reduce(
-        (acc, val) => acc + props.entity.damageDealtTo(val.id),
+        (acc, val) =>
+            acc +
+            (direction === `outgoing`
+                ? props.entity.damageDealtTo(val.id)
+                : props.entity.damageTakenFrom(val.id)),
         0,
     );
     // a customize function for the meter items.
@@ -216,7 +267,10 @@ const DamageByTargetChart = (props: DamageByTargetProps) => {
         const name = entity.isPet
             ? `${entity.name} (${entity.owner?.name || `unknown`})`
             : entity.name;
-        const value = props.entity.damageDealtTo(entity.id);
+        const value =
+            direction === `outgoing`
+                ? props.entity.damageDealtTo(entity.id)
+                : props.entity.damageTakenFrom(entity.id);
         return assign(customize(entity), {
             entity,
             value: value,

@@ -360,7 +360,7 @@ export class EncounterEntityState {
      *
      * @param entityId the entity that dealt damage
      */
-    damageTakenBreakdownTo(entityId: string) {
+    damageTakenBreakdownFrom(entityId: string) {
         if (!this.damageTakenByTarget[entityId]) {
             this.damageTakenByTarget[entityId] = this.toDamageBreakdownByTarget(
                 entityId,
@@ -411,6 +411,22 @@ export class EncounterEntityState {
      */
     damageDealt() {
         return this.damageDealtBreakdown().total;
+    }
+
+    /**
+     * Get the total damage taken by this entity during the encounter.
+     */
+    damageTaken() {
+        return this.damageTakenBreakdown().total;
+    }
+
+    /**
+     * Get the damage taken by this entity from a specific entity id.
+     *
+     * @param entityId the damaging entity
+     */
+    damageTakenFrom(entityId: string): number {
+        return this.damageTakenBreakdownFrom(entityId).total;
     }
 
     /**
@@ -484,7 +500,7 @@ export class EncounterEntityState {
             .map((it) =>
                 type === 'outgoing'
                     ? this.damageDealtBreakdownTo(it)
-                    : this.damageTakenBreakdownTo(it),
+                    : this.damageTakenBreakdownFrom(it),
             )
             .reduce<{
                 items: Record<

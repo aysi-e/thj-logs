@@ -274,7 +274,6 @@ const DamageMeterItemContainer = styled.div<{
     background: ${(props) =>
         `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
     color: ${(props) => props.$color};
-    padding: 4px 0;
     user-select: none;
     cursor: pointer;
 

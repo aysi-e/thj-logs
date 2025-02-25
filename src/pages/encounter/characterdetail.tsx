@@ -1,26 +1,22 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { Encounter, toDPSData, Entity } from '@aysi-e/thj-parser-lib';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
-import { values } from 'lodash';
 import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
 import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
 import CharacterDamageTaken from '../../ui/encounter/CharacterDamageTaken.tsx';
-
-type Props = {
-    encounter: Encounter;
-};
+import { useEncounter } from '../../state/encounter.ts';
 
 /**
  * Component which renders a character detail page.
  */
-const CharacterDetailPage = observer(({ encounter }: Props) => {
+const CharacterDetailPage = observer(() => {
     // if our id is invalid, get out of here.
+    const encounter = useEncounter();
     const id = parseInt(useParams().id || '');
-    if (isNaN(id) || id >= values(encounter.entities).length)
+    if (isNaN(id) || !encounter.getEntityByIndex(id))
         return <Navigate to={'../..'} relative={`path`} />;
-    const entity = values(encounter.entities)[id];
+    const entity = encounter.getEntityByIndex(id);
     const [nav] = useSearchParams();
     const mode = nav.get('mode');
     let content;
@@ -28,14 +24,14 @@ const CharacterDetailPage = observer(({ encounter }: Props) => {
         case 'damage-done':
             content = (
                 <Content>
-                    <CharacterDamageDone entity={entity} encounter={encounter} />
+                    <CharacterDamageDone entity={entity} />
                 </Content>
             );
             break;
         case 'damage-taken':
             content = (
                 <Content>
-                    <CharacterDamageTaken entity={entity} encounter={encounter} />
+                    <CharacterDamageTaken entity={entity} />
                 </Content>
             );
             break;
@@ -85,7 +81,7 @@ const Container = styled.div`
  */
 const ContentContainer = styled(ScrollableContent)`
     width: calc(100% - 8px);
-    height: calc(100% - 32px);
+    height: calc(100% - 32px - 38px);
 `;
 
 /**
@@ -109,21 +105,6 @@ const HeaderText = styled.div`
 `;
 
 /**
- * Styled span for the time text in the header.
- */
-const HeaderTime = styled.span`
-    font-size: 0.9em;
-`;
-
-/**
- * Styled span for the colored text in the header.
- */
-const ColoredHeaderText = styled.span<{ $failed: boolean }>`
-    font-weight: bold;
-    color: ${(props) => (props.$failed ? theme.color.error : theme.color.success)};
-`;
-
-/**
  * A styled content div for the character detail page.
  */
 const Content = styled.div`
@@ -132,16 +113,6 @@ const Content = styled.div`
 
     color: ${theme.color.white};
     font-family: ${theme.font.header};
-`;
-
-/**
- * A container div for the character detail breakdown charts.
- */
-const BreakdownContainer = styled.div`
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 `;
 
 /**
