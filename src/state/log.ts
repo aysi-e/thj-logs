@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from 'mobx';
+import { action, makeAutoObservable, runInAction } from 'mobx';
 import { Encounter } from '@aysi-e/thj-parser-lib';
 import { createContext } from 'react';
 import {
@@ -89,6 +89,15 @@ export class Log {
         };
 
         worker.postMessage(file);
+    }
+
+    @action
+    clear(): void {
+        this.start = undefined;
+        this.end = undefined;
+        this.progress = undefined;
+        this.loggedBy = undefined;
+        this.encounters = [];
     }
 }
 

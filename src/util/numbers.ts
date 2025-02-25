@@ -11,7 +11,5 @@ export const shortenNumber = (num: number) => {
     const val = Math.abs(num);
     if (val < 1000) return num.toString();
     if (val < 1000000) return `${round(num / 1000, 1)}k`;
-    return `${round(num / 1000000, 2)
-        .toString()
-        .padEnd(4, `0`)}m`;
+    return `${(num / 1000000).toPrecision(3)}m`;
 };

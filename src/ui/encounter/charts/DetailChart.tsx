@@ -301,7 +301,9 @@ const DetailChart = (props: Props) => {
                 $background={it.background || theme.color.secondary}
                 $width={(it.percent / rescale) * 100}
             >
-                <DamageItemText>{it.name}</DamageItemText>
+                <FirstItem>
+                    <DamageItemText>{it.name}</DamageItemText>
+                </FirstItem>
             </DamageMeterItem>
             {columns.map(({ title, value, format = (v) => v.toString(), total }: DetailColumn) => {
                 const val = value(it);
@@ -341,7 +343,13 @@ const DamageMeterItem = styled.div<{
     background: ${(props) =>
         `linear-gradient(to right, ${props.$background}, ${props.$background} ${props.$width}%, transparent ${props.$width}% 100%)`};
     color: ${(props) => props.$color};
-    padding: 4px;
     user-select: none;
     cursor: pointer;
+`;
+
+/**
+ * Styled div that adds a small margin to the first item in a damage meter item container.
+ */
+const FirstItem = styled.div`
+    margin-left: 4px;
 `;

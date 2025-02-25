@@ -1,64 +1,70 @@
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import theme, { ScrollableContent } from '../../theme.tsx';
-import { Encounter, toDPSData, Entity } from '@aysi-e/thj-parser-lib';
-import { Navigate, useParams } from 'react-router-dom';
-import { values } from 'lodash';
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { Duration } from 'luxon';
-import { shortenNumber } from '../../util/numbers.ts';
-import {
-    DetailedIncomingDamageBreakdownChart,
-    DetailedOutgoingDamageBreakdownChart,
-} from '../../ui/encounter/charts/DamageBreakdown.tsx';
-import {
-    DetailedIncomingHealingBreakdownChart,
-    DetailedOutgoingHealingBreakdownChart,
-} from '../../ui/encounter/charts/HealingBreakdown.tsx';
-
-type Props = {
-    encounter: Encounter;
-};
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
+import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
+import CharacterDamageTaken from '../../ui/encounter/CharacterDamageTaken.tsx';
+import { useEncounter } from '../../state/encounter.ts';
+import CharacterHealing from '../../ui/encounter/CharacterHealing.tsx';
 
 /**
  * Component which renders a character detail page.
  */
-const CharacterDetailPage = observer(({ encounter }: Props) => {
+const CharacterDetailPage = observer(() => {
     // if our id is invalid, get out of here.
+    const encounter = useEncounter();
     const id = parseInt(useParams().id || '');
-    if (isNaN(id) || id >= values(encounter.entities).length)
+    if (isNaN(id) || !encounter.getEntityByIndex(id))
         return <Navigate to={'../..'} relative={`path`} />;
-    const entity = values(encounter.entities)[id];
+    const entity = encounter.getEntityByIndex(id);
+    const [nav] = useSearchParams();
+    const mode = nav.get('mode');
+    let content;
+    switch (mode) {
+        case 'damage-done':
+            content = (
+                <Content>
+                    <CharacterDamageDone entity={entity} />
+                </Content>
+            );
+            break;
+        case 'damage-taken':
+            content = (
+                <Content>
+                    <CharacterDamageTaken entity={entity} />
+                </Content>
+            );
+            break;
+        case 'healing':
+            content = (
+                <Content>
+                    <CharacterHealing entity={entity} />
+                </Content>
+            );
+            break;
+        case 'deaths':
+            content = <Content></Content>;
+            break;
+        case 'events':
+            content = <Content></Content>;
+            break;
+        default:
+            content = <Content></Content>;
+            break;
+    }
+
     return (
         <Container>
             <Header>
+                <ButtonContainer to={`/encounter/${encounter.id}${mode ? `?mode=${mode}` : ''}`}>
+                    <UIIcon path={UI_CANCEL} height={18} width={18} />
+                </ButtonContainer>
                 <HeaderText>
                     showing character details for <strong>{entity.name}</strong>
                 </HeaderText>
             </Header>
-            <ContentContainer>
-                <Content>
-                    <CharacterDamageTimeline entity={entity} encounter={encounter} />
-                    <BreakdownContainer>
-                        <DetailedOutgoingDamageBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedIncomingDamageBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedOutgoingHealingBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                        <DetailedIncomingHealingBreakdownChart
-                            encounter={encounter}
-                            entity={entity}
-                        />
-                    </BreakdownContainer>
-                </Content>
-            </ContentContainer>
+            <ContentContainer>{content}</ContentContainer>
         </Container>
     );
 });
@@ -80,96 +86,27 @@ const Container = styled.div`
  */
 const ContentContainer = styled(ScrollableContent)`
     width: calc(100% - 8px);
-    height: calc(100% - 32px);
+    height: calc(100% - 32px - 38px);
 `;
 
 /**
  * A header component for the character detail page.
  */
 const Header = styled.div`
-    background-color: ${theme.color.darkerBackground};
+    background-color: ${theme.color.darkerGrey};
     width: 100%;
     color: ${theme.color.white};
     font-family: ${theme.font.header};
     border-bottom: 1px solid ${theme.color.secondary};
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
 `;
 
 /**
  * Styled div for header text.
  */
 const HeaderText = styled.div`
-    padding: 8px;
-`;
-
-/**
- * Styled span for the time text in the header.
- */
-const HeaderTime = styled.span`
-    font-size: 0.9em;
-`;
-
-/**
- * Styled span for the colored text in the header.
- */
-const ColoredHeaderText = styled.span<{ $failed: boolean }>`
-    font-weight: bold;
-    color: ${(props) => (props.$failed ? theme.color.error : theme.color.success)};
-`;
-
-/**
- * A placeholder component for the character damage timeline.
- *
- * @param entity the entity
- * @param encounter the encounter
- * @constructor
- */
-const CharacterDamageTimeline = ({
-    entity,
-    encounter,
-}: {
-    entity: Entity;
-    encounter: Encounter;
-}) => {
-    const data = toDPSData(encounter.timeline, undefined, undefined, [entity.id]);
-    return (
-        <EncounterDamageGraphContainer>
-            <Header>
-                <HeaderText>damage per second dealt by {entity.name}</HeaderText>
-            </Header>
-            <ResponsiveContainer width='100%' height={270}>
-                <LineChart
-                    data={data}
-                    margin={{
-                        top: 16,
-                        right: 12,
-                        left: -4,
-                        bottom: 0,
-                    }}
-                >
-                    <XAxis
-                        dataKey='time'
-                        interval={data.length > 450 ? 59 : data.length > 60 ? 29 : 5}
-                        tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
-                    />
-                    <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                    <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
-                </LineChart>
-            </ResponsiveContainer>
-        </EncounterDamageGraphContainer>
-    );
-};
-
-/**
- * A container div for the character detail timeline.
- */
-const EncounterDamageGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
+    padding: 8px 0;
 `;
 
 /**
@@ -184,11 +121,22 @@ const Content = styled.div`
 `;
 
 /**
- * A container div for the character detail breakdown charts.
+ * Styled div for an icon button.
  */
-const BreakdownContainer = styled.div`
-    margin-top: 8px;
+const ButtonContainer = styled(Link)`
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    padding: 0 8px;
+    width: 18px;
+
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
 `;

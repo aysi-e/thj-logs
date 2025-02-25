@@ -42,7 +42,7 @@ export const ChartContent = styled.div<ChartContentProps>`
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: ${(props) =>
+    height: ${(props) =>
         props.$height - (props.$isFooter ? 31 : 0) - (props.$isHeader ? 31 : 0) - 19}px;
     margin-bottom: ${(props) => (props.$isFooter ? `31px` : 0)};
     margin-top: ${(props) => (props.$isHeader ? `31px` : 0)};
@@ -93,10 +93,10 @@ export const ChartHeader = styled.div<{ $grid: string }>`
     right: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 8px 4px 8px;
+    padding: 4px 24px 4px 8px;
     display: grid;
     gap: 8px;
-    grid-template-columns: ${(props) => props.$grid} 8px;
+    grid-template-columns: ${(props) => props.$grid};
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -114,10 +114,10 @@ export const ChartFooter = styled.div<{ $grid: string }>`
     bottom: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 8px 4px 8px;
+    padding: 4px 24px 4px 8px;
     background-color: ${theme.color.darkerBackground};
     display: grid;
-    grid-template-columns: ${(props) => props.$grid} 8px;
+    grid-template-columns: ${(props) => props.$grid};
     grid-gap: 8px;
     border-top: 1px solid ${theme.color.secondary};
 `;
@@ -144,7 +144,7 @@ export const BaseChart = (props: Props) => (
     <ChartContainer className={props.className}>
         <Header>{props.title}</Header>
         <ChartContent
-            $height={props.height ?? 300}
+            $height={props.height ?? 259}
             $isHeader={!!props.header}
             $isFooter={!!props.footer}
         >
@@ -211,6 +211,7 @@ export const BaseChartHeader = ({ columns }: HeaderProps) => {
  */
 export const DamageItemText = styled.div`
     font-size: 0.9em;
+    padding: 4px 0;
 `;
 
 /**
@@ -222,6 +223,7 @@ export const DamageItemNumber = styled.div`
     justify-content: center;
     align-items: center;
     display: flex;
+    padding: 4px 0;
 `;
 
 /**
@@ -302,3 +304,45 @@ export const BaseChartFooter = ({ columns, totals }: FooterProps) => {
         </ChartFooter>
     );
 };
+
+/**
+ * Styled container div for a tooltip-sized damage meter.
+ */
+export const TooltipChart = (props: Props) => {
+    return (
+        <TooltipContainer className={props.className}>
+            <TooltipHeader>{props.title}</TooltipHeader>
+            <TooltipContent>{props.children}</TooltipContent>
+        </TooltipContainer>
+    );
+};
+
+/**
+ * Styled header div for a tooltip-sized damage meter.
+ */
+const TooltipHeader = styled.div`
+    text-align: center;
+    padding: 4px;
+    border-bottom: 1px solid ${theme.color.secondary};
+    font-size: 0.9em;
+`;
+
+/**
+ * Styled container div for a tooltip-sized damage meter.
+ */
+const TooltipContainer = styled.div`
+    background-color: #222;
+    border: 1px solid ${theme.color.secondary};
+    filter: ${theme.style.dropShadow};
+    z-index: 1;
+`;
+
+/**
+ * Styled content div for a tooltip-sized damage meter.
+ */
+const TooltipContent = styled.div`
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
