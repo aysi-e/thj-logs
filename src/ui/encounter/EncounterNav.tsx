@@ -12,11 +12,18 @@ import { Encounter } from '@aysi-e/thj-parser-lib';
 const EncounterNav = () => {
     const [nav] = useSearchParams();
     const mode = nav.get('mode');
+    // todo: implement these modes.
+    //            <Link to={'?mode=overview'}>
+    //                 <Button selected={mode === 'overview' || !mode}>overview</Button>
+    //             </Link>
+    //            <Link to={'?mode=deaths'}>
+    //                 <Button selected={mode === 'deaths'}>deaths</Button>
+    //             </Link>
+    //             <Link to={'?mode=events'}>
+    //                 <Button selected={mode === 'events'}>event log</Button>
+    //             </Link>
     return (
         <Container>
-            <Link to={'?mode=overview'}>
-                <Button selected={mode === 'overview' || !mode}>overview</Button>
-            </Link>
             <Link to={'?mode=damage-done'}>
                 <Button selected={mode === 'damage-done'}>damage done</Button>
             </Link>
@@ -25,12 +32,6 @@ const EncounterNav = () => {
             </Link>
             <Link to={'?mode=healing'}>
                 <Button selected={mode === 'healing'}>healing</Button>
-            </Link>
-            <Link to={'?mode=deaths'}>
-                <Button selected={mode === 'deaths'}>deaths</Button>
-            </Link>
-            <Link to={'?mode=events'}>
-                <Button selected={mode === 'events'}>event log</Button>
             </Link>
         </Container>
     );
