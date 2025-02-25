@@ -25,7 +25,7 @@ type Props = {
 const CharacterDamageTaken = observer(({ entity }: Props) => {
     return (
         <>
-            <EncounterGraph title={`damage per second dealt by ${entity.name}`}>
+            <EncounterGraph title={`damage per second taken by ${entity.name}`}>
                 <CharacterDamageTimeline entity={entity} />
             </EncounterGraph>
             <EncounterSummaryContainer>

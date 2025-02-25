@@ -27,7 +27,7 @@ type Props = {
 const CharacterHealing = observer(({ entity }: Props) => {
     return (
         <>
-            <EncounterGraph title={`damage per second dealt by ${entity.name}`}>
+            <EncounterGraph title={`healing per second done by ${entity.name}`}>
                 <CharacterDamageTimeline entity={entity} />
             </EncounterGraph>
             <EncounterSummaryContainer>
@@ -47,13 +47,13 @@ const CharacterHealing = observer(({ entity }: Props) => {
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
                 <HealingBySourceChart
-                    title={`healing taken by ${entity.name}`}
+                    title={`healing received by ${entity.name}`}
                     entities={[entity]}
                     columns={HEALING_DETAILED_COLUMNS}
                     direction={`incoming`}
                 />
                 <HealingByTargetChart
-                    title={`healing taken by ${entity.name}`}
+                    title={`healing received by ${entity.name}`}
                     entity={entity}
                     direction={`incoming`}
                     customize={(item) => ({
