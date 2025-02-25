@@ -30,6 +30,15 @@ const theme = {
         selected: 'rgba(255,255,255,0.25)',
 
         transparentGrey: 'rgba(0,0,0,.25)',
+
+        whiteDamage: `#7a7a7a`,
+        absorb: `#7c7941`,
+        spellDamage: `#4a5ba6`,
+
+        friend: `#4A58A4`,
+        friendHeal: `#33622d`,
+        enemy: `#9c4646`,
+        enemyHeal: `#596215`,
     },
 
     font: {
