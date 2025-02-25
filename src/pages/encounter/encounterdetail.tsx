@@ -48,7 +48,7 @@ const EncounterDetailPage = observer(() => {
         case 'healing':
             content = (
                 <Content>
-                    <EncounterHealing encounter={encounter} />
+                    <EncounterHealing />
                 </Content>
             );
             break;

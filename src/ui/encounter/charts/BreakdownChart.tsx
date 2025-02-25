@@ -3,6 +3,7 @@
 import {
     DamageShieldBreakdownItem,
     EncounterEntityState,
+    HealingBreakdownItem,
     MeleeBreakdownItem,
     SpellBreakdownItem,
     useEncounter,
@@ -11,11 +12,12 @@ import DetailChart, {
     DamageShieldDetailItem,
     DetailColumn,
     DetailItem,
+    HealingDetailItem,
     MeleeDetailItem,
     SpellDetailItem,
 } from './DetailChart.tsx';
 import { assign, round, values } from 'lodash';
-import { DamageShieldDamage, MeleeDamage, SpellDamage } from '@aysi-e/thj-parser-lib';
+import { DamageShieldDamage, Healing, MeleeDamage, SpellDamage } from '@aysi-e/thj-parser-lib';
 import theme from '../../../theme.tsx';
 import { shortenNumber } from '../../../util/numbers.ts';
 
@@ -71,7 +73,7 @@ export const DamageBySourceChart = (props: BySourceProps) => {
         ? props.customize
         : (item: MeleeDamage | SpellDamage | DamageShieldDamage) => ({});
     // calculate the total damage done for the entities that we're charting.
-    const { data, total } = props.entities.reduce<BreakdownStub>(
+    const { data, total } = props.entities.reduce<DamageBreakdownStub>(
         (acc, val) => {
             const breakdown =
                 direction === `outgoing` ? val.damageDealtBreakdown() : val.damageTakenBreakdown();
@@ -96,7 +98,7 @@ export const DamageBySourceChart = (props: BySourceProps) => {
      *
      * @param items the items
      */
-    const toDetailItems = (items: BreakdownItems[]): DetailItem => {
+    const toDetailItems = (items: DamageBreakdownItem[]): DetailItem => {
         const sample = items[0];
         switch (sample.type) {
             case 'melee':
@@ -139,7 +141,7 @@ export const DamageBySourceChart = (props: BySourceProps) => {
     };
 
     // the columns to show.
-    const columns = props.columns ? props.columns : BREAKDOWN_DEFAULT_COLUMNS;
+    const columns = props.columns ? props.columns : DAMAGE_BREAKDOWN_DEFAULT_COLUMNS;
 
     return (
         <DetailChart
@@ -155,7 +157,7 @@ export const DamageBySourceChart = (props: BySourceProps) => {
 /**
  * A basic set of columns for an outgoing damage table.
  */
-const BREAKDOWN_DEFAULT_COLUMNS: DetailColumn[] = [
+const DAMAGE_BREAKDOWN_DEFAULT_COLUMNS: DetailColumn[] = [
     {
         title: `%`,
         value: (item) => item.percent,
@@ -176,8 +178,131 @@ const BREAKDOWN_DEFAULT_COLUMNS: DetailColumn[] = [
     },
 ];
 
-type BreakdownItems = DamageShieldBreakdownItem | MeleeBreakdownItem | SpellBreakdownItem;
-type BreakdownStub = {
-    data: Record<string, BreakdownItems[]>;
+/**
+ * Type which includes each type of damage breakdown item.
+ */
+type DamageBreakdownItem = DamageShieldBreakdownItem | MeleeBreakdownItem | SpellBreakdownItem;
+
+/**
+ * A damage breakdown stub type, for reducing.
+ */
+type DamageBreakdownStub = {
+    data: Record<string, DamageBreakdownItem[]>;
+    total: number;
+};
+
+/**
+ * Props accepted by the HealingBySourceChart component.
+ */
+type HealingBySourceProps = {
+    /**
+     * The title for this breakdown chart.
+     */
+    title: string;
+
+    /**
+     * The entities that should be included in the breakdown chart.
+     */
+    entities: EncounterEntityState[];
+
+    /**
+     * Should we display incoming or outgoing healing?
+     */
+    direction?: `incoming` | `outgoing`;
+
+    /**
+     * A function that customizes meter items.
+     *
+     * @param item the item to customize
+     */
+    customize?: (item: Healing) => {
+        link?: string;
+        background?: string;
+        color?: string;
+    };
+
+    /**
+     * The columns to render for this breakdown chart.
+     */
+    columns?: DetailColumn[];
+};
+
+/**
+ * A breakdown chart where healing from the provided entities is broken down by healing type/name.
+ *
+ * @param props the props accepted by the HealingBySourceChart component.
+ * @constructor
+ */
+export const HealingBySourceChart = (props: HealingBySourceProps) => {
+    const encounter = useEncounter();
+
+    // is this a damage dealt or damage taken chart?
+    const direction = props.direction || `outgoing`;
+    // a customize function for the chart items.
+    const customize = props.customize ? props.customize : (item: Healing) => ({});
+    // calculate the total damage done for the entities that we're charting.
+    const { data, total } = props.entities.reduce<HealingBreakdownStub>(
+        (acc, val) => {
+            const breakdown =
+                direction === `outgoing`
+                    ? val.healingDoneBreakdown()
+                    : val.healingReceivedBreakdown();
+            breakdown.items.forEach((item) => {
+                const key = `${item.type}-${item.name}`;
+                if (!acc.data[key]) acc.data[key] = [];
+                acc.data[key].push(item);
+            });
+            acc.total += breakdown.total;
+            return acc;
+        },
+        {
+            data: {},
+            total: 0,
+        },
+    );
+
+    /**
+     * Given breakdown items, return detail items.
+     *
+     * The provided item list must not be empty.
+     *
+     * @param items the items
+     */
+    const toDetailItems = (items: HealingBreakdownItem[]): DetailItem => {
+        const healing = new Healing(items[0].data.name, `#all`, items[0].data.isAbsorb);
+        items.forEach((item) => healing.addFrom(item.data));
+        return assign(
+            {
+                type: `heal`,
+                name: healing.name,
+                damage: healing,
+                perSecond: healing.total / encounter.duration.as(`seconds`),
+                label: `HPS`,
+                percent: (healing.total / total) * 100,
+                background: healing.isAbsorb ? `#7c7941` : `#33622d`,
+            },
+            customize(healing),
+        ) as HealingDetailItem;
+    };
+
+    // the columns to show.
+    const columns = props.columns ? props.columns : DAMAGE_BREAKDOWN_DEFAULT_COLUMNS;
+
+    return (
+        <DetailChart
+            title={props.title}
+            items={values(data).map((it) => toDetailItems(it))}
+            columns={columns}
+            header
+            footer
+        />
+    );
+};
+
+/**
+ * A healing breakdown stub type, for reducing.
+ */
+type HealingBreakdownStub = {
+    data: Record<string, HealingBreakdownItem[]>;
     total: number;
 };

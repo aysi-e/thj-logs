@@ -2,7 +2,6 @@ import { toDPSData } from '@aysi-e/thj-parser-lib';
 import { observer } from 'mobx-react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
 import { shortenNumber } from '../../util/numbers.ts';
 import { Duration } from 'luxon';
 import { EncounterEntityState, useEncounter } from '../../state/encounter.ts';
@@ -42,6 +41,10 @@ const CharacterDamageDone = observer(({ entity }: Props) => {
                 <DamageByTargetChart
                     title={`target breakdown for ${entity.name}`}
                     entity={entity}
+                    customize={(item) => ({
+                        background: item.isEnemy ? `#9c4646` : `#4A58A4`,
+                        link: `../character/${item.index}?mode=damage-taken`,
+                    })}
                 />
             </EncounterSummaryContainer>
         </>

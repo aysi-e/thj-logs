@@ -1,36 +1,63 @@
-import { Encounter, toDPSData } from '@aysi-e/thj-parser-lib';
+import { toHPSData } from '@aysi-e/thj-parser-lib';
 import { observer } from 'mobx-react';
-import { partition, values } from 'lodash';
+import { zipWith } from 'lodash';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
-import { HealingDoneChart, HealingReceivedChart } from './charts/HealingByCharacter.tsx';
-
-/**
- * Props accepted by the EncounterHealing component.
- */
-type Props = {
-    encounter: Encounter;
-};
+import { useEncounter } from '../../state/encounter.ts';
+import { EncounterGraph } from './Common.tsx';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Duration } from 'luxon';
+import { shortenNumber } from '../../util/numbers.ts';
+import {
+    OverallHealingDoneChart,
+    OverallHealingReceivedChart,
+} from './charts/ByCharacterChart.tsx';
 
 /**
  * Component which displays overview and summary data for an encounter.
  */
-const EncounterHealing = observer(({ encounter }: Props) => {
-    const [enemies, friends] = partition(values(encounter.entities), (it) => it.isEnemy);
+const EncounterHealing = observer(() => {
+    const encounter = useEncounter();
 
     return (
         <>
-            <OverviewGraphContainer>
-                <Header>healing by allies & enemies</Header>
-                <div>todo: graph</div>
-            </OverviewGraphContainer>
+            <EncounterGraph title={`healing by allies & enemies`}>
+                <HealingTimelineGraph />
+            </EncounterGraph>
             <EncounterSummaryContainer>
-                <HealingDoneChart encounter={encounter} entities={friends} />
-                <HealingReceivedChart encounter={encounter} entities={friends} />
+                <OverallHealingDoneChart
+                    title={`healing done by allies`}
+                    entities={encounter.friends}
+                    customize={(item) => ({
+                        link: `/encounter/${encounter.id}/character/${item.index}?mode=healing`,
+                        background: `#33622d`,
+                    })}
+                />
+                <OverallHealingDoneChart
+                    title={`healing done by enemies`}
+                    entities={encounter.enemies}
+                    customize={(item) => ({
+                        link: `/encounter/${encounter.id}/character/${item.index}?mode=healing`,
+                        background: `#596215`,
+                    })}
+                />
             </EncounterSummaryContainer>
             <EncounterSummaryContainer>
-                <HealingDoneChart encounter={encounter} entities={enemies} />
-                <HealingReceivedChart encounter={encounter} entities={enemies} />
+                <OverallHealingReceivedChart
+                    title={`healing received by allies`}
+                    entities={encounter.friends}
+                    customize={(item) => ({
+                        link: `/encounter/${encounter.id}/character/${item.index}?mode=healing`,
+                        background: `#33622d`,
+                    })}
+                />
+                <OverallHealingReceivedChart
+                    title={`healing received by enemies`}
+                    entities={encounter.enemies}
+                    customize={(item) => ({
+                        link: `/encounter/${encounter.id}/character/${item.index}?mode=healing`,
+                        background: `#596215`,
+                    })}
+                />
             </EncounterSummaryContainer>
         </>
     );
@@ -49,26 +76,58 @@ const EncounterSummaryContainer = styled.div`
 `;
 
 /**
- * A container div for the encounter healing timeline graph.
+ * Component which contains a damage done graph for the encounter damage done section.
+ *
+ * @constructor
  */
-const OverviewGraphContainer = styled.div`
-    height: 300px;
-    width: 100%;
-    border: ${theme.color.secondary} 1px solid;
-    box-sizing: border-box;
-    background-color: ${theme.color.darkerBackground};
-`;
+const HealingTimelineGraph = () => {
+    const encounter = useEncounter();
 
-/**
- * A header component for the encounter healing page.
- */
-const Header = styled.div`
-    background-color: ${theme.color.darkerGrey};
-    width: calc(100% - 16px);
-    color: ${theme.color.white};
-    font-family: ${theme.font.header};
-    border-bottom: 1px solid ${theme.color.secondary};
-    display: flex;
-    justify-content: space-between;
-    padding: 8px;
-`;
+    const friendsData = toHPSData(
+        encounter.timeline,
+        undefined,
+        undefined,
+        encounter.friends.map((it) => it.id),
+    );
+    const enemyData = toHPSData(
+        encounter.timeline,
+        undefined,
+        undefined,
+        encounter.enemies.map((it) => it.id),
+    );
+
+    const data = zipWith(friendsData, enemyData, (a, b) => {
+        return {
+            time: a.time,
+            'ally hps': a.hps,
+            'enemy hps': b.hps,
+        };
+    });
+
+    return (
+        <ResponsiveContainer width='100%' height={270}>
+            <LineChart
+                data={data}
+                margin={{
+                    top: 16,
+                    right: 12,
+                    left: -4,
+                    bottom: 0,
+                }}
+            >
+                <XAxis
+                    dataKey='time'
+                    interval={friendsData.length > 450 ? 59 : friendsData.length > 60 ? 29 : 5}
+                    tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
+                />
+                <YAxis tickFormatter={(i) => shortenNumber(i)} />
+                <Tooltip
+                    labelFormatter={(label) => Duration.fromMillis(label * 1000).toFormat(`m:ss`)}
+                    contentStyle={{ background: 'black' }}
+                />
+                <Line type='monotone' dataKey='ally hps' stroke='#82ca9d' dot={false} />
+                <Line type='monotone' dataKey='enemy hps' stroke={`#596215`} dot={false} />
+            </LineChart>
+        </ResponsiveContainer>
+    );
+};

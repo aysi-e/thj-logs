@@ -93,7 +93,7 @@ export const ChartHeader = styled.div<{ $grid: string }>`
     right: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 8px 4px 8px;
+    padding: 4px 24px 4px 8px;
     display: grid;
     gap: 8px;
     grid-template-columns: ${(props) => props.$grid};
@@ -114,7 +114,7 @@ export const ChartFooter = styled.div<{ $grid: string }>`
     bottom: 0;
     height: 22px;
     position: absolute;
-    padding: 4px 8px 4px 8px;
+    padding: 4px 24px 4px 8px;
     background-color: ${theme.color.darkerBackground};
     display: grid;
     grid-template-columns: ${(props) => props.$grid};

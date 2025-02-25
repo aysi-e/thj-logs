@@ -414,10 +414,24 @@ export class EncounterEntityState {
     }
 
     /**
+     * Get the total healing done by this entity during the encounter.
+     */
+    healingDone() {
+        return this.healingDoneBreakdown().total;
+    }
+
+    /**
      * Get the total damage taken by this entity during the encounter.
      */
     damageTaken() {
         return this.damageTakenBreakdown().total;
+    }
+
+    /**
+     * Get the total healing received by this entity during the encounter.
+     */
+    healingReceived() {
+        return this.healingReceivedBreakdown().total;
     }
 
     /**
@@ -472,6 +486,8 @@ export class EncounterEntityState {
                                 type: it.type,
                                 data: heal,
                             };
+
+                            acc.total += it.data.total;
                         }
                     });
                     return acc;

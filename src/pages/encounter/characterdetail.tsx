@@ -6,6 +6,7 @@ import { UI_CANCEL, UIIcon } from '../../ui/Icon.tsx';
 import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
 import CharacterDamageTaken from '../../ui/encounter/CharacterDamageTaken.tsx';
 import { useEncounter } from '../../state/encounter.ts';
+import CharacterHealing from '../../ui/encounter/CharacterHealing.tsx';
 
 /**
  * Component which renders a character detail page.
@@ -36,7 +37,11 @@ const CharacterDetailPage = observer(() => {
             );
             break;
         case 'healing':
-            content = <Content></Content>;
+            content = (
+                <Content>
+                    <CharacterHealing entity={entity} />
+                </Content>
+            );
             break;
         case 'deaths':
             content = <Content></Content>;
