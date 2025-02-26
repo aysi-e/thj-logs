@@ -2,7 +2,7 @@ import { HandlerEvent, toDPSData, toHPSData } from '@aysi-e/thj-parser-lib';
 import { observer } from 'mobx-react';
 import { zipWith } from 'lodash';
 import styled from 'styled-components';
-import theme from '../../theme.tsx';
+import theme, { ComponentProps } from '../../theme.tsx';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { DateTime, Duration, Interval } from 'luxon';
 import { shortenNumber } from '../../util/numbers.ts';
@@ -17,14 +17,13 @@ import { SelectButton } from '../SelectButton.tsx';
  * Component which displays overview and summary data for an encounter.
  */
 const EncounterEventLog = observer(() => {
-    const encounter = useEncounter();
     return (
         <>
             <EncounterGraph title={`encounter overview`}>
                 <DamageTimelineGraph />
             </EncounterGraph>
             <EncounterSummaryContainer>
-                <EventLog />
+                <EventLog title={`event log for encounter`} />
             </EncounterSummaryContainer>
         </>
     );
@@ -107,17 +106,29 @@ const DamageTimelineGraph = () => {
                     labelFormatter={(label) => Duration.fromMillis(label * 1000).toFormat(`m:ss`)}
                     contentStyle={{ background: 'black' }}
                 />
-                <Line type='monotone' dataKey='ally dps' stroke={theme.color.friend} dot={false} />
-                <Line type='monotone' dataKey='enemy dps' stroke={theme.color.enemy} dot={false} />
-                <Line
-                    type='monotone'
-                    dataKey='ally hps'
-                    stroke={theme.color.friendHeal}
-                    dot={false}
-                />
+                <Line type='monotone' dataKey='ally dps' stroke={`#70bfff`} dot={false} />
+                <Line type='monotone' dataKey='enemy dps' stroke={theme.color.error} dot={false} />
+                <Line type='monotone' dataKey='ally hps' stroke={`#82ca9d`} dot={false} />
             </LineChart>
         </ResponsiveContainer>
     );
+};
+
+/**
+ * Props accepted by the EventLog component.
+ */
+type EventLogProps = {
+    /**
+     * The title to use for this event log.
+     */
+    title: string;
+
+    /**
+     * A filter function to apply to the event log.
+     *
+     * @param event the event to filter
+     */
+    filter?: (event: HandlerEvent) => boolean;
 };
 
 /**
@@ -125,17 +136,18 @@ const DamageTimelineGraph = () => {
  *
  * @constructor
  */
-const EventLog = () => {
+export const EventLog = (props: EventLogProps & ComponentProps) => {
     const encounter = useEncounter();
     const [end, setEnd] = useState(500);
-    const events = encounter.events.slice(0, end);
+    const filter = props.filter ? props.filter : () => true;
+    const events = encounter.events.filter(filter);
     return (
-        <EventBox background={`secondary`} header={`event log for encounter`}>
+        <EventBox background={`secondary`} header={props.title} className={props.className}>
             <EventItemContainer>
-                {events.map((event, index) => (
+                {events.slice(0, end).map((event, index) => (
                     <EventItem event={event} index={index} key={index} />
                 ))}
-                {end < encounter.events.length ? (
+                {end < events.length ? (
                     <LoadNext onClick={() => setEnd(end + 1000)}>load more events</LoadNext>
                 ) : null}
             </EventItemContainer>
@@ -143,11 +155,17 @@ const EventLog = () => {
     );
 };
 
+/**
+ * Container div for the event log.
+ */
 const EventBox = styled(Box)`
     max-height: calc(100vh - 300px - 80px - 50px - 29px);
     width: 1000px;
 `;
 
+/**
+ * Container div for the event items.
+ */
 const EventItemContainer = styled.div`
     background: ${theme.color.darkerBackground};
 
@@ -170,6 +188,9 @@ const EventItemContainer = styled.div`
     }
 `;
 
+/**
+ * An event item which.
+ */
 const EventItem = ({ event, index }: { event: HandlerEvent; index: number }) => {
     const encounter = useEncounter();
     const time = Interval.fromDateTimes(encounter.start, DateTime.fromMillis(event.timestamp))
@@ -259,7 +280,7 @@ const EventItem = ({ event, index }: { event: HandlerEvent; index: number }) => 
                     mode={`damage-done`}
                 />,
                 <EventText $color={`#8ce1ff`} key={`${index}-type`}>
-                    {event.description}
+                    {event.description.length ? event.description : `(damage shield)`}
                 </EventText>,
                 <EventEntity
                     key={`${index}-target`}

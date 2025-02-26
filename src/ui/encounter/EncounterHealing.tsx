@@ -126,7 +126,7 @@ const HealingTimelineGraph = () => {
                     contentStyle={{ background: 'black' }}
                 />
                 <Line type='monotone' dataKey='ally hps' stroke='#82ca9d' dot={false} />
-                <Line type='monotone' dataKey='enemy hps' stroke={`#596215`} dot={false} />
+                <Line type='monotone' dataKey='enemy hps' stroke={`#ffba6c`} dot={false} />
             </LineChart>
         </ResponsiveContainer>
     );

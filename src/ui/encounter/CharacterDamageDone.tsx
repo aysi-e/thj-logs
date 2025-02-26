@@ -90,7 +90,7 @@ const CharacterDamageTimeline = ({ entity }: { entity: EncounterEntityState }) =
                     tickFormatter={(i) => Duration.fromMillis(i * 1000).toFormat(`m:ss`)}
                 />
                 <YAxis tickFormatter={(i) => shortenNumber(i)} />
-                <Line type='monotone' dataKey='dps' stroke='#82ca9d' dot={false} />
+                <Line type='monotone' dataKey='dps' stroke='#70bfff' dot={false} />
                 <Tooltip
                     labelFormatter={(label) => Duration.fromMillis(label * 1000).toFormat(`m:ss`)}
                     contentStyle={{ background: 'black' }}
