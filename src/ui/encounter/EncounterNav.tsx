@@ -19,9 +19,7 @@ const EncounterNav = () => {
     //            <Link to={'?mode=deaths'}>
     //                 <Button selected={mode === 'deaths'}>deaths</Button>
     //             </Link>
-    //             <Link to={'?mode=events'}>
-    //                 <Button selected={mode === 'events'}>event log</Button>
-    //             </Link>
+
     return (
         <Container>
             <Link to={'?mode=damage-done'}>
@@ -32,6 +30,9 @@ const EncounterNav = () => {
             </Link>
             <Link to={'?mode=healing'}>
                 <Button selected={mode === 'healing'}>healing</Button>
+            </Link>
+            <Link to={'?mode=events'}>
+                <Button selected={mode === 'events'}>event log</Button>
             </Link>
         </Container>
     );

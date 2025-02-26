@@ -174,6 +174,13 @@ class EncounterState {
     get characters() {
         return values(this.entities);
     }
+
+    /**
+     * Get the events for this encounter.
+     */
+    get events() {
+        return this.encounter.events;
+    }
 }
 
 export default EncounterState;

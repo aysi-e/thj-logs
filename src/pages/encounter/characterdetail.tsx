@@ -7,6 +7,7 @@ import CharacterDamageDone from '../../ui/encounter/CharacterDamageDone.tsx';
 import CharacterDamageTaken from '../../ui/encounter/CharacterDamageTaken.tsx';
 import { useEncounter } from '../../state/encounter.ts';
 import CharacterHealing from '../../ui/encounter/CharacterHealing.tsx';
+import CharacterEventLog from '../../ui/encounter/CharacterEventLog.tsx';
 
 /**
  * Component which renders a character detail page.
@@ -47,7 +48,11 @@ const CharacterDetailPage = observer(() => {
             content = <Content></Content>;
             break;
         case 'events':
-            content = <Content></Content>;
+            content = (
+                <Content>
+                    <CharacterEventLog entity={entity} />
+                </Content>
+            );
             break;
         default:
             content = <Content></Content>;

@@ -65,16 +65,18 @@ export const Box = (
             : props.background === `secondary`
               ? theme.color.darkerBackground
               : props.background) || theme.color.darkerGrey;
+    const headerBackground =
+        props.background === `primary` ? theme.color.darkerBackground : theme.color.darkerGrey;
     let header = <></>;
     if (props.header) {
         if (typeof props.header === 'string') {
             header = (
-                <Header>
+                <Header background={headerBackground}>
                     <HeaderText>{props.header}</HeaderText>
                 </Header>
             );
         } else {
-            header = <Header>{props.header}</Header>;
+            header = <Header background={headerBackground}>{props.header}</Header>;
         }
     }
     return (

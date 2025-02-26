@@ -118,7 +118,7 @@ const DamageTimelineGraph = () => {
                     labelFormatter={(label) => Duration.fromMillis(label * 1000).toFormat(`m:ss`)}
                     contentStyle={{ background: 'black' }}
                 />
-                <Line type='monotone' dataKey='ally dtps' stroke='#82ca9d' dot={false} />
+                <Line type='monotone' dataKey='ally dtps' stroke='#70bfff' dot={false} />
                 <Line type='monotone' dataKey='enemy dtps' stroke={theme.color.error} dot={false} />
             </LineChart>
         </ResponsiveContainer>

@@ -12,6 +12,7 @@ import EncounterHealing from '../../ui/encounter/EncounterHealing.tsx';
 import EncounterNav from '../../ui/encounter/EncounterNav.tsx';
 import EncounterState, { EncounterContext } from '../../state/encounter.ts';
 import EncounterTitle from '../../ui/encounter/EncounterTitle.tsx';
+import EncounterEventLog from '../../ui/encounter/EncounterEventLog.tsx';
 
 /**
  * Component which renders an encounter detail page.
@@ -56,7 +57,11 @@ const EncounterDetailPage = observer(() => {
             content = <Content></Content>;
             break;
         case 'events':
-            content = <Content></Content>;
+            content = (
+                <Content>
+                    <EncounterEventLog />
+                </Content>
+            );
             break;
         default:
             content = (
